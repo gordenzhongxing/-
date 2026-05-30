@@ -873,55 +873,83 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
 .surrender-no{background:none;border-color:var(--text-secondary);color:var(--text-secondary)}
 .surrender-no:hover{border-color:var(--gold-primary);color:var(--gold-primary)}
 
-/* ===== 移动端响应式适配 ===== */
-@media(max-width:768px){
-  :root{--card-w:96px;--card-h:130px}
-  /* 开始界面 */
-  .title{font-size:36px;letter-spacing:8px}
-  .subtitle{font-size:12px;margin-bottom:30px}
-  .room-grid{grid-template-columns:repeat(2,1fr);gap:12px}
-  .room-btn{width:110px;height:130px}
-  .room-icon{font-size:30px}
-  .room-name{font-size:15px}
-  .rules-btn{font-size:12px;padding:8px 20px}
-  /* 牌桌 */
-  .poker-table{width:340px;height:340px}
-  .table-area{width:420px;height:420px}
-  .table-center{width:420px;height:420px}
-  .table-timer{width:70px;height:70px}
-  .table-timer-num{font-size:32px !important}
-  .table-timer-label{font-size:9px}
-  /* 手牌区 */
-  .hand-area{max-height:90px}
-  .hand-area .tft-card{width:68px !important;height:92px !important}
-  /* 战报 */
-  .log-area{width:150px;max-height:160px;font-size:9px;top:40px}
-  /* 顶栏 */
-  .top-bar{font-size:11px;padding:4px 8px}
-  .game-status{font-size:10px}
-  .timer-bar{width:90px}
-  .my-info{font-size:11px}
-  /* 出牌框 */
-  .play-slot{width:62px !important;height:84px !important}
-  .slot-label{font-size:8px !important}
-  .face-down-card{width:58px !important;height:80px !important;font-size:18px !important}
-  .face-down-card .plabel{font-size:8px !important}
-  /* 座位 */
-  .seat-avatar{width:40px;height:40px;font-size:20px}
-  .seat-name{font-size:9px}
-  .seat-card-count{font-size:8px}
-  .seat-status{font-size:7px}
-  .seat-avatar .eliminated-x{width:16px;height:16px;font-size:10px}
+/* ===== 移动端横屏强制适配 ===== */
+/* 横屏提示遮罩（竖屏时显示） */
+.landscape-hint{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:#0a0812;z-index:99999;flex-direction:column;align-items:center;justify-content:center;
+  color:#f0b232;font-family:sans-serif;text-align:center;padding:40px;box-sizing:border-box
 }
-@media(max-width:420px){
-  .poker-table{width:280px;height:280px}
-  .table-area{width:360px;height:360px}
-  .table-center{width:360px;height:360px}
-  .room-grid{grid-template-columns:repeat(2,1fr);gap:8px}
-  .room-btn{width:95px;height:115px}
-  .hand-area .tft-card{width:56px !important;height:76px !important}
-  .play-slot{width:52px !important;height:72px !important}
-  .face-down-card{width:48px !important;height:66px !important;font-size:14px !important}
+.landscape-hint .lh-icon{font-size:80px;margin-bottom:20px}
+.landscape-hint .lh-title{font-size:28px;font-weight:bold;margin-bottom:16px}
+.landscape-hint .lh-desc{font-size:16px;color:#8a8098;line-height:1.6}
+
+@media(orientation:portrait) and (max-width:768px){
+  .landscape-hint{display:flex}
+  #start-screen{filter:blur(10px);pointer-events:none}
+  #game-screen{filter:blur(10px);pointer-events:none}
+}
+
+/* 横屏模式下的全屏适配 */
+@media(orientation:landscape) and (max-height:500px){
+  /* 强制游戏区填满整个屏幕 */
+  #game-screen{
+    width:100vw !important;height:100vh !important;
+    position:fixed !important;top:0 !important;left:0 !important;
+    overflow:hidden !important;display:block;
+  }
+  body{overflow:hidden;background:#0a0812}
+  html,body{width:100vw;height:100vh;overflow:hidden;margin:0;padding:0}
+
+  /* 整体缩放：设计稿720x900，按短边等比缩放 */
+  #game-screen{
+    transform-origin:center center !important;
+  }
+  /* 开始界面也适配 */
+  #start-screen{
+    transform-origin:center center !important;
+  }
+}
+
+@media(max-width:768px) and (orientation:landscape){
+  :root{--card-w:72px;--card-h:98px}
+  /* 开始界面 */
+  .title{font-size:28px;letter-spacing:6px}
+  .subtitle{font-size:11px;margin-bottom:15px}
+  .room-grid{grid-template-columns:repeat(4,1fr);gap:8px}
+  .room-btn{width:80px;height:95px}
+  .room-icon{font-size:24px}
+  .room-name{font-size:12px}
+  .room-desc{font-size:9px}
+  .rules-btn{font-size:11px;padding:6px 16px}
+  /* 牌桌 - 用scale整体缩放，不单独改尺寸 */
+  /* 手牌区 */
+  .hand-area{max-height:18vh;padding:4px 8px}
+  .hand-area .tft-card{width:52px !important;height:70px !important;border-radius:5px}
+  /* 战报 */
+  .log-area{width:120px;max-height:25vh;font-size:8px;top:2px;right:2px;opacity:.75}
+  /* 顶栏 */
+  .top-bar{font-size:9px;padding:2px 6px}
+  .game-status{font-size:9px}
+  .timer-bar{width:60px}
+  .my-info{font-size:9px}
+  /* 出牌框 */
+  .play-slot{width:46px !important;height:62px !important;border-radius:4px}
+  .slot-label{font-size:7px !important}
+  .face-down-card{width:42px !important;height:58px !important;font-size:14px !important}
+  .face-down-card .plabel{font-size:7px !important}
+  /* 座位 */
+  .seat-avatar{width:32px;height:32px;font-size:16px}
+  .seat-name{font-size:8px}
+  .seat-card-count{font-size:7px}
+  .seat-status{font-size:6px}
+  .seat-avatar .eliminated-x{width:13px;height:13px;font-size:8px}
+  /* 按钮栏 */
+  .btn-play{padding:5px 12px;font-size:11px}
+  .btn-surrender{padding:3px 8px;font-size:9px}
+  /* 结果弹窗 */
+  .result-overlay h1{font-size:24px}
+  .result-overlay p{font-size:13px}
 }
 </style>
 </head>
@@ -2745,16 +2773,57 @@ function showRules(){document.getElementById('rules-modal').style.display='flex'
 // ===== 移动端自适应缩放 =====
 function adaptMobile(){
   const isMobile=window.innerWidth<=768;
+  const isLandscape=window.innerWidth>window.innerHeight;
   const gs=document.getElementById('game-screen');
+  const ss=document.getElementById('start-screen');
   if(!gs)return;
-  if(isMobile){
-    // 根据屏幕宽度计算缩放比例（游戏区设计宽度约720px）
-    const scale=Math.min(window.innerWidth/750, window.innerHeight/900);
-    gs.style.transform=`scale(${Math.max(scale,0.45)})`;
-    gs.style.transformOrigin='top center';
-  } else {
+
+  if(isMobile && isLandscape){
+    // 横屏模式：游戏区设计尺寸约 800×500（横屏布局）
+    // 用 transform: scale 填满整个屏幕
+    const designW=800, designH=500;
+    const scaleX=window.innerWidth/designW;
+    const scaleY=window.innerHeight/designH;
+    const scale=Math.min(scaleX, scaleY);
+    gs.style.transform=`scale(${scale})`;
+    gs.style.transformOrigin='top left';
+    gs.style.width=designW+'px';
+    gs.style.height=designH+'px';
+    gs.style.position='fixed';
+    gs.style.top='0';
+    gs.style.left='0';
+    gs.style.overflow='hidden';
+    // 居中偏移
+    const offsetX=(window.innerWidth - designW*scale)/2;
+    const offsetY=(window.innerHeight - designH*scale)/2;
+    gs.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
+    // 开始界面也缩放
+    if(ss){
+      ss.style.transform=`scale(${scale})`;
+      ss.style.transformOrigin='top left';
+    }
+  } else if(isMobile && !isLandscape){
+    // 竖屏模式：不缩放，由CSS的landscape-hint遮罩提示用户旋转
     gs.style.transform='';
     gs.style.transformOrigin='';
+    gs.style.width='';
+    gs.style.height='';
+    gs.style.position='';
+    gs.style.top='';
+    gs.style.left='';
+    gs.style.overflow='';
+    if(ss){ss.style.transform='';ss.style.transformOrigin='';}
+  } else {
+    // 桌面端：清除所有移动端样式
+    gs.style.transform='';
+    gs.style.transformOrigin='';
+    gs.style.width='';
+    gs.style.height='';
+    gs.style.position='';
+    gs.style.top='';
+    gs.style.left='';
+    gs.style.overflow='';
+    if(ss){ss.style.transform='';ss.style.transformOrigin='';}
   }
 }
 window.addEventListener('resize', adaptMobile);
@@ -2762,5 +2831,10 @@ window.addEventListener('resize', adaptMobile);
 setTimeout(adaptMobile, 100);
 
 </script>
+<div class="landscape-hint">
+  <div class="lh-icon">📱↔️</div>
+  <div class="lh-title">请横屏游玩</div>
+  <div class="lh-desc">虫蛀黄狼皮需要横屏模式<br>请将手机旋转至横屏</div>
+</div>
 </body>
 </html>
