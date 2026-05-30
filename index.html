@@ -878,67 +878,100 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
 .surrender-no{background:none;border-color:var(--text-secondary);color:var(--text-secondary)}
 .surrender-no:hover{border-color:var(--gold-primary);color:var(--gold-primary)}
 
-/* ===== 移动端适配（支持竖屏+横屏，无UI遮挡） ===== */
-.landscape-hint{display:none !important}
+/* ===== 移动端适配（强制横屏） ===== */
 
-/* 移动端基础：禁止滚动，安全区域 */
-@media(max-width:768px){
-  html,body{overflow:hidden;width:100vw;height:100vh;position:relative}
-  body{padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
-  /* 开始界面 - 竖屏紧凑 */
-  .title{font-size:24px;letter-spacing:4px}
-  .subtitle{font-size:10px;margin-bottom:12px}
-  .room-grid{grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px}
-  .room-btn{width:70px;height:82px;border-radius:10px}
-  .room-icon{font-size:22px;margin-bottom:6px}
-  .room-name{font-size:11px;font-weight:bold}
-  .room-desc{font-size:8px;margin-top:2px}
-  .rules-btn{font-size:10px;padding:5px 14px;border-radius:6px}
-  /* 牌桌区域 */
-  .table-area{transform:scale(0.72)!important;transform-origin:center top}
-  /* 手牌区 - 更紧凑 */
-  .hand-area{max-height:16vh!important;padding:3px 6px!important}
+/* 竖屏时全屏遮罩提示旋转 */
+.rotate-hint{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:#0a0812;z-index:99999;flex-direction:column;align-items:center;justify-content:center;
+  color:#f0b232;font-family:sans-serif;text-align:center;padding:40px;box-sizing:border-box
+}
+.rotate-hint .rh-phone{font-size:60px;animation:rh-rotate 2s ease-in-out infinite;margin-bottom:24px}
+.rotate-hint .rh-title{font-size:24px;font-weight:bold;margin-bottom:12px}
+.rotate-hint .rh-desc{font-size:14px;color:#8a8098;line-height:1.6}
+@keyframes rh-rotate{0%,100%{transform:rotate(0deg)}25%{transform:rotate(90deg)}75%{transform:rotate(90deg)}}
+
+@media(orientation:portrait) and (max-width:768px){
+  .rotate-hint{display:flex!important}
+  #start-screen,#game-screen,#match-screen{display:none!important}
+}
+
+/* 横屏移动端样式 */
+@media(orientation:landscape) and (max-height:500px){
+  html,body{overflow:hidden;width:100vw;height:100vh;margin:0;padding:0;position:relative}
+  body{background:#0a0812}
+
+  /* 开始界面紧凑 */
+  .title{font-size:22px;letter-spacing:4px;margin-bottom:2px}
+  .subtitle{font-size:9px;margin-bottom:10px;letter-spacing:3px}
+  .room-grid{grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+  .room-btn{width:70px;height:78px;border-radius:8px}
+  .room-icon{font-size:20px;margin-bottom:4px}
+  .room-name{font-size:10px}
+  .room-desc{font-size:7px}
+  .rules-btn{font-size:9px;padding:4px 12px}
+  .sound-toggle{padding:4px 8px;font-size:14px}
+
+  /* 牌桌 - 横屏缩小 */
+  .table-area{transform:scale(0.6)!important;transform-origin:center center!important}
+
+  /* 手牌区 - 紧凑横条 */
+  .hand-area{max-height:15vh!important;padding:2px 8px!important;gap:2px!important}
   .hand-area .tft-card{
-    width:44px!important;height:60px!important;border-radius:4px;
-    font-size:7px!important
+    width:42px!important;height:57px!important;border-radius:3px!important;
+    font-size:6px!important;cursor:grab!important
   }
-  .tft-card .card-name{font-size:8px!important}
-  .tft-card .card-cost{width:14px!important;height:14px!important;font-size:9px!important}
-  .tft-card .card-rank{font-size:6px!important;padding:0 2px!important}
-  /* 战报区 */
-  .log-area{width:110px!important;max-height:20vh!important;font-size:7px!important;top:4px!important;right:4px!important;opacity:.7!important;padding:3px!important;border-radius:4px!important}
-  /* 顶栏信息 */
-  .top-bar{font-size:8px!important;padding:2px 4px!important;border-radius:4px!important}
-  .game-status{font-size:8px!important}
-  .timer-bar{width:55px!important;height:16px!important}
-  .my-info{font-size:8px!important;padding:2px 6px!important}
+  .tft-card .card-name{font-size:7px!important}
+  .tft-card .card-cost{width:12px!important;height:12px!important;font-size:8px!important}
+  .tft-card .card-rank{font-size:5px!important;padding:0 1px!important}
+  .tft-card .card-art{transform:scale(0.55)!important;transform-origin:center!important}
+
+  /* 战报 */
+  .log-area{width:100px!important;max-height:18vh!important;font-size:6px!important;top:2px!important;right:2px!important;opacity:.65!important;padding:2px!important;border-radius:3px!important}
+
+  /* 顶栏 */
+  .top-bar{font-size:7px!important;padding:1px 3px!important;border-radius:3px!important}
+  .game-status{font-size:7px!important}
+  .timer-bar{width:50px!important;height:14px!important}
+  .my-info{font-size:7px!important;padding:1px 4px!important}
+
   /* 出牌框 */
-  .play-slot{width:40px!important;height:54px!important;border-radius:3px!important}
-  .slot-label{font-size:6px!important}
-  .face-down-card{width:36px!important;height:50px!important;font-size:12px!important;border-radius:3px!important}
-  .face-down-card .plabel{font-size:6px!important}
+  .play-slot{width:38px!important;height:52px!important;border-radius:3px!important}
+  .slot-label{font-size:5px!important}
+  .face-down-card{width:34px!important;height:46px!important;font-size:11px!important;border-radius:3px!important}
+  .face-down-card .plabel{font-size:5px!important}
+
   /* 座位头像 */
-  .seat-avatar{width:28px!important;height:28px!important;font-size:14px!important}
-  .seat-name{font-size:7px!important}
-  .seat-card-count{font-size:6px!important}
-  .seat-status{font-size:5px!important;display:none}
-  .seat-avatar .eliminated-x{width:11px!important;height:11px!important;font-size:7px!important}
-  /* 按钮 */
-  .btn-play{padding:4px 10px!important;font-size:10px!important;border-radius:5px!important}
-  .btn-surrender{padding:2px 6px!important;font-size:8px!important}
+  .seat-avatar{width:24px!important;height:24px!important;font-size:12px!important}
+  .seat-name{font-size:6px!important}
+  .seat-card-count{font-size:5px!important}
+  .seat-avatar .eliminated-x{width:10px!important;height:10px!important;font-size:6px!important}
+
   /* 中央倒计时 */
-  .table-timer{width:64px!important;height:64px!important}
-  .table-timer .tt-num{font-size:28px!important}
+  .table-timer{width:52px!important;height:52px!important}
+  .table-timer .tt-num{font-size:22px!important}
+
+  /* 按钮 */
+  .btn-play{padding:3px 8px!important;font-size:9px!important;border-radius:4px!important}
+  .btn-surrender{padding:2px 5px!important;font-size:7px!important}
+
   /* 结果弹窗 */
-  .result-overlay h1{font-size:20px!important}
-  .result-overlay p{font-size:11px!important}
-  .result-overlay .result-restart,.result-overlay .result-home{padding:8px 18px!important;font-size:12px!important}
+  .result-overlay h1{font-size:18px!important}
+  .result-overlay p{font-size:10px!important}
+  .result-overlay .result-restart,.result-overlay .result-home{padding:6px 14px!important;font-size:10px!important}
+
   /* 规则弹窗 */
-  .rules-modal .rules-content{max-height:50vh!important;font-size:10px!important;padding:12px!important}
-  .rules-close{font-size:14px!important;padding:4px 12px!important}
+  .rules-modal .rules-content{max-height:40vh!important;font-size:9px!important;padding:8px!important}
+
   /* 口诀弹窗 */
-  .koujue-popup{font-size:18px!important;z-index:200!important}
-  .sweep-popup{font-size:28px!important;z-index:210!important}
+  .koujue-popup{font-size:16px!important}
+  .sweep-popup{font-size:22px!important}
+}
+
+/* 通用移动端样式（横竖都生效） */
+@media(max-width:768px){
+  /* 隐藏seat-status省空间 */
+  .seat-status{display:none!important}
 }
 </style>
 </head>
@@ -1121,6 +1154,34 @@ function getAvatarHTML(player){
 
 /* ========== 语音播报系统 - 搞笑明星风格 ========== */
 let speechReady='speechSynthesis' in window;
+
+// 移动端：首次用户交互时激活语音
+let speechActivated=false;
+function activateSpeech(){
+  if(speechActivated)return;
+  speechActivated=true;
+  // 初始化AudioContext（移动端需要用户交互）
+  initAudio();
+  if(audioCtx && audioCtx.state==='suspended'){
+    audioCtx.resume();
+  }
+  // 移动端SpeechSynthesis需要resume
+  if(window.speechSynthesis && window.speechSynthesis.suspended){
+    window.speechSynthesis.resume();
+  }
+  // 预热：播放一个极短静音，激活音频管道
+  if(audioCtx){
+    playTone(100, 0.01, 'sine', 0.001);
+  }
+  // 预加载语音列表
+  if(window.speechSynthesis){
+    window.speechSynthesis.getVoices();
+  }
+}
+// 监听首次交互
+['touchstart','click','keydown'].forEach(evt=>{
+  document.addEventListener(evt, activateSpeech, {once:false, passive:true});
+});
 let currentVoiceStyle='default';
 
 function changeVoiceStyle(v){currentVoiceStyle=v}
@@ -1168,14 +1229,30 @@ const KOUJUE_FUNNY={
 KOUJUE_FUNNY.linzhiling['tidi>qigan'] = KOUJUE_FUNNY.linzhiling['tudi>qigan'];
 
 function speak(text,overrideStyle){
-  if(!speechReady||!soundEnabled)return;
+  if(!soundEnabled)return;
+  // 确保AudioContext已激活
+  if(!audioCtx)initAudio();
+  if(audioCtx && audioCtx.state==='suspended')audioCtx.resume();
+
+  // 播放语音提示音效（即使TTS不可用也能听到声音）
+  playKoujueSound();
+
+  if(!speechReady)return;
+
+  // 移动端兼容：先cancel再resume
   window.speechSynthesis.cancel();
+  if(window.speechSynthesis.suspended){
+    window.speechSynthesis.resume();
+  }
+
   const style=VOICE_STYLES[overrideStyle||currentVoiceStyle]||VOICE_STYLES.default;
   const u=new SpeechSynthesisUtterance(style.prefix+text+style.suffix);
   u.lang='zh-CN';
   u.rate=style.rate;
   u.pitch=style.pitch;
   u.volume=0.9;
+
+  // 尝试匹配中文语音
   const voices=window.speechSynthesis.getVoices();
   let targetVoice=null;
   if(style.pitch>1.4){
@@ -1187,7 +1264,39 @@ function speak(text,overrideStyle){
   }
   if(!targetVoice)targetVoice=voices.find(v=>v.lang.startsWith('zh'));
   if(targetVoice)u.voice=targetVoice;
+
+  // 显示语音指示器
+  showVoiceIndicator();
+
+  u.onend=()=>hideVoiceIndicator();
+  u.onerror=()=>hideVoiceIndicator();
+
   window.speechSynthesis.speak(u);
+
+  // 兜底：Chrome移动端bug — 15秒后还没说完就强制cancel
+  setTimeout(()=>{
+    if(window.speechSynthesis.speaking){
+      window.speechSynthesis.cancel();
+      hideVoiceIndicator();
+    }
+  }, 15000);
+}
+
+function showVoiceIndicator(){
+  let vi=document.getElementById('voice-indicator');
+  if(!vi){
+    vi=document.createElement('div');
+    vi.id='voice-indicator';
+    vi.className='voice-indicator';
+    vi.innerHTML='<div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><span>播报中...</span>';
+    const gs=document.getElementById('game-screen');
+    if(gs)gs.appendChild(vi);
+  }
+  vi.style.display='flex';
+}
+function hideVoiceIndicator(){
+  const vi=document.getElementById('voice-indicator');
+  if(vi)vi.style.display='none';
 }
 
 function speakKoujue(winnerRole,loserRole,isSameRole){
@@ -2635,6 +2744,105 @@ function initPlaySlots(){
   });
 }
 
+/* ========== 触摸滑动出牌系统 ========== */
+let touchDragIdx=-1;       // 正在滑动的手牌索引
+let touchDragEl=null;      // 滑动中的卡牌克隆元素
+let touchStartX=0, touchStartY=0;
+let touchDragging=false;
+
+function initTouchDrag(){
+  const ha=document.getElementById('hand-area');
+  if(!ha)return;
+
+  // 全局touchmove和touchend（只需绑定一次）
+  document.addEventListener('touchmove', onTouchMove, {passive:false});
+  document.addEventListener('touchend', onTouchEnd, {passive:false});
+  document.addEventListener('touchcancel', onTouchEnd, {passive:false});
+}
+
+function onCardTouchStart(e, origIdx){
+  if(G.phase!=='playing')return;
+  if(G.playedCards[0]!==undefined)return;
+  e.preventDefault(); // 阻止滚动
+
+  const touch=e.touches[0];
+  touchStartX=touch.clientX;
+  touchStartY=touch.clientY;
+  touchDragIdx=origIdx;
+  touchDragging=false;
+
+  // 选中该牌
+  G.selectedIdx=origIdx;
+  renderHand();
+}
+
+function onTouchMove(e){
+  if(touchDragIdx<0)return;
+  e.preventDefault(); // 阻止页面滚动
+
+  const touch=e.touches[0];
+  const dx=touch.clientX-touchStartX;
+  const dy=touch.clientY-touchStartY;
+
+  // 移动超过10px才算开始拖拽（避免误触）
+  if(!touchDragging && (Math.abs(dx)>10 || Math.abs(dy)>10)){
+    touchDragging=true;
+    // 创建拖拽卡牌克隆
+    const c=G.players[0].hand[touchDragIdx];
+    if(!c)return;
+    const clone=mkTFTCard(c);
+    clone.style.cssText='position:fixed;z-index:99998;pointer-events:none;width:60px;height:82px;opacity:0.85;transition:none;filter:drop-shadow(0 4px 12px rgba(240,178,50,.6))';
+    document.body.appendChild(clone);
+    touchDragEl=clone;
+  }
+
+  if(touchDragging && touchDragEl){
+    touchDragEl.style.left=(touch.clientX-30)+'px';
+    touchDragEl.style.top=(touch.clientY-41)+'px';
+
+    // 高亮最近的出牌框
+    document.querySelectorAll('.play-slot').forEach(s=>{
+      const r=s.getBoundingClientRect();
+      const inside=touch.clientX>=r.left && touch.clientX<=r.right && touch.clientY>=r.top && touch.clientY<=r.bottom;
+      s.classList.toggle('drag-over', inside);
+    });
+  }
+}
+
+function onTouchEnd(e){
+  if(touchDragIdx<0)return;
+
+  if(touchDragging){
+    // 拖拽结束 — 检测落在哪个出牌框
+    const touch=e.changedTouches[0];
+    let hitSlot=null;
+    document.querySelectorAll('.play-slot').forEach(s=>{
+      const r=s.getBoundingClientRect();
+      if(touch.clientX>=r.left && touch.clientX<=r.right && touch.clientY>=r.top && touch.clientY<=r.bottom){
+        hitSlot=s;
+      }
+      s.classList.remove('drag-over');
+    });
+
+    if(hitSlot){
+      const targetPid=parseInt(hitSlot.dataset.targetPid);
+      doPlayCardToTarget(touchDragIdx, targetPid);
+    }
+
+    // 清除克隆卡牌
+    if(touchDragEl){touchDragEl.remove();touchDragEl=null;}
+  } else {
+    // 没有拖拽 — 视为点击（选中手牌）
+    // selectCard已在onclick中处理
+  }
+
+  touchDragIdx=-1;
+  touchDragging=false;
+}
+
+// 页面加载后初始化触摸系统
+setTimeout(initTouchDrag, 200);
+
 // 出牌到指定目标（暂存，不立即提交）
 function doPlayCardToTarget(cardIdx, targetPid){
   if(cardIdx<0||G.phase!=='playing')return;
@@ -2685,9 +2893,11 @@ function renderHand(){
     const el=mkTFTCard(c);if(origIdx===G.selectedIdx)el.classList.add('selected');
     // 手牌区缩小显示
     el.style.width='90px';el.style.height='121px';
-    // 拖拽出牌
+    // 拖拽出牌（桌面端）
     makeCardDraggable(el, origIdx);
-    // 保留点击选中（用于查看/高亮）
+    // 触摸滑动出牌（移动端）
+    el.ontouchstart=(e)=>onCardTouchStart(e, origIdx);
+    // 保留点击选中（用于查看/高亮 / PC端点牌出牌）
     el.onclick=()=>selectCard(origIdx);
     ha.appendChild(el);
   });
@@ -2774,38 +2984,26 @@ function adaptMobile(){
     return;
   }
 
-  // 获取安全区域（微信/浏览器地址栏、底部导航栏等）
-  const safeTop=(window.visualViewport?window.visualViewport.offsetTop:0)
-    || (getComputedStyle(document.documentElement).getPropertyValue('--sat').replace('px','')*1||0);
-  const safeBottom=(window.visualViewport?(window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop):0)
-    || (getComputedStyle(document.documentElement).getPropertyValue('--sab').replace('px','')*1||0);
+  // 横屏模式：填满屏幕
+  const isLandscape=window.innerWidth>window.innerHeight;
+  if(!isLandscape)return; // 竖屏时由CSS遮罩处理，不缩放
 
-  // 可用宽高
+  // 安全区域
+  const safeTop=(window.visualViewport?window.visualViewport.offsetTop:0)||0;
+  const safeBottom=(window.visualViewport?(window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop):0)||0;
   const availW=window.innerWidth;
   const availH=window.innerHeight-safeTop-safeBottom;
 
-  // 设计尺寸：游戏区原始约720×920（桌面版），移动端需要缩小
-  // 竖屏时设计高度优先（让牌桌完整显示），横屏时宽度优先
-  const isLandscape=availW>availH;
-  let designW, designH, padding;
-  if(isLandscape){
-    // 横屏：更宽松
-    designW=800; designH=500; padding=8;
-  } else {
-    // 竖屏：紧凑，留足空间给安全区域
-    designW=720; designH=900; padding=4;
-  }
-
-  // 计算缩放比例（留padding边距避免贴边）
+  // 横屏设计尺寸（更紧凑）
+  const designW=720, designH=460;
+  const padding=4;
   const scaleX=(availW-padding*2)/designW;
   const scaleY=(availH-padding*2)/designH;
-  const scale=Math.min(scaleX, scaleY, 1.2); // 最大120%
+  const scale=Math.min(scaleX, scaleY);
 
-  // 居中定位（考虑safe-top偏移）
   const finalLeft=(availW - designW*scale)/2;
   const finalTop=safeTop+(availH - designH*scale)/2;
 
-  // 应用到游戏区和开始区
   [gs, ss].forEach(el => {
     if(!el) return;
     el.style.transform=`scale(${scale})`;
@@ -2822,5 +3020,10 @@ window.addEventListener('resize', adaptMobile);
 setTimeout(adaptMobile, 100);
 
 </script>
+<div class="rotate-hint">
+  <div class="rh-phone">📱</div>
+  <div class="rh-title">请横屏游玩</div>
+  <div class="rh-desc">虫蛀黄狼皮需要横屏模式<br>请将手机旋转至横屏 🔄</div>
+</div>
 </body>
 </html>
