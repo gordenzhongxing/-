@@ -3,7 +3,7 @@
   "short_name": "虫蛀黄狼皮",
   "description": "五指猜拳策略卡牌对战，支持2-5人混战",
   "display": "standalone",
-  "orientation": "landscape",
+  "orientation": "any",
   "background_color": "#0a0812",
   "theme_color": "#0a0812",
   "start_url": ".",
