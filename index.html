@@ -873,46 +873,11 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
 .surrender-no{background:none;border-color:var(--text-secondary);color:var(--text-secondary)}
 .surrender-no:hover{border-color:var(--gold-primary);color:var(--gold-primary)}
 
-/* ===== 移动端横屏强制适配 ===== */
-/* 横屏提示遮罩（竖屏时显示） */
-.landscape-hint{
-  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#0a0812;z-index:99999;flex-direction:column;align-items:center;justify-content:center;
-  color:#f0b232;font-family:sans-serif;text-align:center;padding:40px;box-sizing:border-box
-}
-.landscape-hint .lh-icon{font-size:80px;margin-bottom:20px}
-.landscape-hint .lh-title{font-size:28px;font-weight:bold;margin-bottom:16px}
-.landscape-hint .lh-desc{font-size:16px;color:#8a8098;line-height:1.6}
+/* ===== 移动端适配（支持竖屏+横屏） ===== */
+/* 横屏提示遮罩 - 隐藏不用 */
+.landscape-hint{display:none !important}
 
-@media(orientation:portrait) and (max-width:768px){
-  .landscape-hint{display:flex}
-  #start-screen{filter:blur(10px);pointer-events:none}
-  #game-screen{filter:blur(10px);pointer-events:none}
-}
-
-/* 横屏模式下的全屏适配 */
-@media(orientation:landscape) and (max-height:500px){
-  /* 强制游戏区填满整个屏幕 */
-  #game-screen{
-    width:100vw !important;height:100vh !important;
-    position:fixed !important;top:0 !important;left:0 !important;
-    overflow:hidden !important;display:block;
-  }
-  body{overflow:hidden;background:#0a0812}
-  html,body{width:100vw;height:100vh;overflow:hidden;margin:0;padding:0}
-
-  /* 整体缩放：设计稿720x900，按短边等比缩放 */
-  #game-screen{
-    transform-origin:center center !important;
-  }
-  /* 开始界面也适配 */
-  #start-screen{
-    transform-origin:center center !important;
-  }
-}
-
-@media(max-width:768px) and (orientation:landscape){
-  :root{--card-w:72px;--card-h:98px}
+@media(max-width:768px){
   /* 开始界面 */
   .title{font-size:28px;letter-spacing:6px}
   .subtitle{font-size:11px;margin-bottom:15px}
@@ -922,7 +887,6 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
   .room-name{font-size:12px}
   .room-desc{font-size:9px}
   .rules-btn{font-size:11px;padding:6px 16px}
-  /* 牌桌 - 用scale整体缩放，不单独改尺寸 */
   /* 手牌区 */
   .hand-area{max-height:18vh;padding:4px 8px}
   .hand-area .tft-card{width:52px !important;height:70px !important;border-radius:5px}
@@ -2770,40 +2734,15 @@ function addLog(t,type=''){
 
 function showRules(){document.getElementById('rules-modal').style.display='flex'}
 
-// ===== 移动端自适应缩放 =====
+// ===== 移动端自适应缩放（支持竖屏+横屏） =====
 function adaptMobile(){
-  const isMobile=window.innerWidth<=768;
-  const isLandscape=window.innerWidth>window.innerHeight;
   const gs=document.getElementById('game-screen');
   const ss=document.getElementById('start-screen');
   if(!gs)return;
 
-  if(isMobile && isLandscape){
-    // 横屏模式：游戏区设计尺寸约 800×500（横屏布局）
-    // 用 transform: scale 填满整个屏幕
-    const designW=800, designH=500;
-    const scaleX=window.innerWidth/designW;
-    const scaleY=window.innerHeight/designH;
-    const scale=Math.min(scaleX, scaleY);
-    gs.style.transform=`scale(${scale})`;
-    gs.style.transformOrigin='top left';
-    gs.style.width=designW+'px';
-    gs.style.height=designH+'px';
-    gs.style.position='fixed';
-    gs.style.top='0';
-    gs.style.left='0';
-    gs.style.overflow='hidden';
-    // 居中偏移
-    const offsetX=(window.innerWidth - designW*scale)/2;
-    const offsetY=(window.innerHeight - designH*scale)/2;
-    gs.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
-    // 开始界面也缩放
-    if(ss){
-      ss.style.transform=`scale(${scale})`;
-      ss.style.transformOrigin='top left';
-    }
-  } else if(isMobile && !isLandscape){
-    // 竖屏模式：不缩放，由CSS的landscape-hint遮罩提示用户旋转
+  const isMobile=window.innerWidth<=768;
+  if(!isMobile){
+    // 桌面端：清除所有缩放
     gs.style.transform='';
     gs.style.transformOrigin='';
     gs.style.width='';
@@ -2811,30 +2750,33 @@ function adaptMobile(){
     gs.style.position='';
     gs.style.top='';
     gs.style.left='';
-    gs.style.overflow='';
     if(ss){ss.style.transform='';ss.style.transformOrigin='';}
-  } else {
-    // 桌面端：清除所有移动端样式
-    gs.style.transform='';
-    gs.style.transformOrigin='';
-    gs.style.width='';
-    gs.style.height='';
-    gs.style.position='';
-    gs.style.top='';
-    gs.style.left='';
-    gs.style.overflow='';
-    if(ss){ss.style.transform='';ss.style.transformOrigin='';}
+    return;
   }
+
+  // 移动端：用scale整体缩放填满屏幕（同时支持竖屏和横屏）
+  // 游戏区原始设计尺寸
+  const designW=800, designH=900;
+  const scaleX=window.innerWidth/designW;
+  const scaleY=window.innerHeight/designH;
+  const scale=Math.min(scaleX, scaleY, 1); // 不超过100%
+
+  // 应用到游戏区和开始区
+  [gs, ss].forEach(el => {
+    if(!el) return;
+    el.style.transform=`scale(${scale})`;
+    el.style.transformOrigin='top left';
+    el.style.width=designW+'px';
+    el.style.height=designH+'px';
+    el.style.position='absolute';
+    el.style.left=((window.innerWidth - designW*scale)/2)+'px';
+    el.style.top=((window.innerHeight - designH*scale)/2)+'px';
+  });
 }
 window.addEventListener('resize', adaptMobile);
 // 首次加载时适配
 setTimeout(adaptMobile, 100);
 
 </script>
-<div class="landscape-hint">
-  <div class="lh-icon">📱↔️</div>
-  <div class="lh-title">请横屏游玩</div>
-  <div class="lh-desc">虫蛀黄狼皮需要横屏模式<br>请将手机旋转至横屏</div>
-</div>
 </body>
 </html>
