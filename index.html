@@ -1,0 +1,2766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<!-- 微信分享 Meta 标签 -->
+<meta property="og:title" content="虫蛀黄狼皮 - 五指猜拳策略卡牌">
+<meta property="og:description" content="虫蛀黄狼皮，鸡吃虫，黄狼吃鸡…五角色四等级策略卡牌对战，支持2-5人混战！">
+<meta property="og:type" content="website">
+<meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='400' height='400' fill='%230a0812'/%3E%3Ctext x='50%25' y='35%25' text-anchor='middle' fill='%23f0b232' font-size='52' font-weight='bold' font-family='sans-serif'%3E虫蛀黄狼皮%3C/text%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%238a8098' font-size='18' font-family='sans-serif'%3E五指猜拳 · 策略卡牌%3C/text%3E%3Ctext x='50%25' y='75%25' text-anchor='middle' fill='%23f0b232' font-size='40'%3E🐛🐺🐔🚩🏔%3C/text%3E%3C/svg%3E">
+<title>虫蛀黄狼皮 - 策略卡牌对战</title>
+<style>
+:root{
+  --bg-dark:#0a0812;--bg-table:#141020;--bg-panel:#1c1830;--bg-card:#221e38;
+  --gold-primary:#f0b232;--gold-dark:#8a6418;--gold-light:#ffe08a;
+  --gold-border:linear-gradient(135deg,#f0b232,#a67c1a,#f0b232,#8a6418);
+  /* 等级颜色：老橙 大紫 中蓝 小绿 */
+  --rank-lao:#ff8c00;--rank-da:#9b59b6;--rank-zhong:#3498db;--rank-xiao:#2ecc71;
+  --text-primary:#f5f0e8;--text-secondary:#8a8098;--text-damage:#ff4444;--text-heal:#44ff88;
+  --card-w:128px;--card-h:172px;
+  --table-felt:#1a5c2a;--table-border:#8b6914;
+  /* TFT卡牌品质色 */
+  --tft-cost-1:var(--rank-xiao);/* 绿 - 1费 */
+  --tft-cost-2:var(--rank-zhong);/* 蓝 - 2费 */
+  --tft-cost-3:var(--rank-da);   /* 紫 - 3费 */
+  --tft-cost-4:var(--rank-lao);  /* 橙/金 - 4费 */
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:var(--text-primary);overflow:hidden;height:100vh;user-select:none}
+
+/* ===== 开始界面 ===== */
+#start-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:radial-gradient(ellipse at 50% 40%,#1c1830 0%,#0a0812 70%);position:relative;overflow:hidden}
+#start-screen::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0b232' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4h6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");opacity:.5}
+.title{font-size:52px;font-weight:bold;background:linear-gradient(180deg,#ffe08a 0%,#f0b232 40%,#a67c1a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 4px 12px rgba(240,178,50,.5));margin-bottom:6px;letter-spacing:14px;position:relative;z-index:1}
+.subtitle{font-size:15px;color:var(--text-secondary);margin-bottom:50px;letter-spacing:6px;position:relative;z-index:1}
+.room-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:36px;position:relative;z-index:1}
+.room-btn{width:135px;height:160px;background:linear-gradient(160deg,#2a2540,#1a1530);border:2px solid transparent;border-image:var(--gold-border) 1;border-radius:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .3s;position:relative;overflow:hidden}
+.room-btn::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(240,178,50,.12) 0%,transparent 60%);opacity:0;transition:opacity .4s}
+.room-btn:hover{transform:translateY(-6px) scale(1.03);filter:brightness(1.2)}.room-btn:hover::before{opacity:1}
+.room-icon{font-size:40px;margin-bottom:10px;filter:drop-shadow(0 2px 6px rgba(240,178,50,.4))}
+.room-name{font-size:18px;font-weight:bold;color:var(--gold-primary)}
+.room-desc{font-size:12px;color:var(--text-secondary);margin-top:4px}
+.rules-btn{background:none;border:1px solid var(--gold-dark);color:var(--gold-primary);padding:10px 30px;border-radius:8px;cursor:pointer;font-size:14px;transition:all .3s;margin-top:12px;position:relative;z-index:1}
+.rules-btn:hover{background:rgba(240,178,50,.1);border-color:var(--gold-primary)}
+.sound-toggle{position:absolute;top:16px;right:16px;background:rgba(26,22,37,.8);border:1px solid var(--gold-dark);color:var(--gold-primary);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:18px;transition:all .3s;z-index:10}
+.sound-toggle:hover{background:rgba(240,178,50,.1);border-color:var(--gold-primary)}
+.sound-toggle.muted{opacity:.4}
+
+/* ===== 匹配界面 ===== */
+#match-screen{display:none;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:radial-gradient(ellipse at center,#1c1830 0%,#0a0812 70%)}
+.match-title{font-size:22px;color:var(--gold-primary);margin-bottom:25px}
+.match-timer{font-size:60px;color:var(--gold-primary);font-weight:bold;margin-bottom:20px}
+.match-players{display:flex;gap:28px;margin-bottom:25px}
+.match-slot{width:72px;height:72px;border:2px dashed var(--gold-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;transition:all .3s;overflow:hidden}
+.match-slot.filled{border-style:solid;border-color:var(--gold-primary);background:rgba(240,178,50,.1)}
+.match-slot.ai{border-color:var(--color-qigan);background:rgba(52,152,219,.1)}
+.cancel-btn{background:none;border:1px solid #c0392b;color:#e74c3c;padding:10px 28px;border-radius:8px;cursor:pointer;font-size:14px}
+.cancel-btn:hover{background:rgba(231,76,60,.15)}
+
+/* ===== 游戏界面 ===== */
+#game-screen{display:none;height:100vh;position:relative;overflow:hidden}
+#game-screen{background:radial-gradient(ellipse at 50% 45%,#1a5c2a 0%,#0f3d1a 40%,#0a0812 80%)}
+
+/* 顶部信息栏 - 统一右上角布局 */
+.top-bar{
+  position:absolute;top:0;left:0;right:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;z-index:25;
+  pointer-events:none;
+}
+.top-bar > *{pointer-events:auto}
+.game-status{
+  font-size:12px;color:var(--text-secondary);line-height:1.6
+}
+.game-status .status-highlight{color:var(--gold-primary);font-weight:bold}
+
+/* 右上角控件组 - 横向排列 */
+.top-right-group{
+  display:flex;align-items:center;gap:8px;
+  pointer-events:auto;
+}
+
+/* ===== 圆形牌桌 ===== */
+.poker-table{
+  position:absolute;top:46%;left:50%;
+  transform:translate(-50%,-50%);
+  width:580px;height:580px;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 50%,#1e8a38 0%,#177a2e 25%,#126424 55%,#0a4015 90%);
+  border:10px solid #c9a227;
+  box-shadow:
+    0 0 0 3px #8b6914,
+    0 0 0 7px #5a4210,
+    0 0 50px rgba(0,0,0,.6),
+    inset 0 0 60px rgba(0,0,0,.2),
+    inset 0 2px 0 rgba(255,255,255,.06);
+  z-index:1;
+}
+.poker-table::before{
+  content:'';position:absolute;inset:12px;border-radius:50%;
+  border:2px solid rgba(201,162,39,.2);
+}
+.poker-table::after{
+  content:'';position:absolute;inset:28px;border-radius:50%;
+  border:1px dashed rgba(201,162,39,.12);
+}
+
+.table-pattern{
+  position:absolute;inset:0;border-radius:50%;overflow:hidden;
+  opacity:.06;
+  background:repeating-conic-gradient(from 0deg,transparent 0deg 8deg,rgba(255,255,255,.1) 8deg 10deg)
+}
+
+/* 座位区域 - 圆形适配 */
+.table-area{
+  position:absolute;top:46%;left:50%;
+  transform:translate(-50%,-50%);width:720px;height:720px;z-index:5;
+  pointer-events:none
+}
+.seat{position:absolute;display:flex;flex-direction:column;align-items:center;transition:all .5s;z-index:5;pointer-events:none}
+.seat.eliminated{opacity:.6;filter:grayscale(0.8)}
+.seat-avatar{width:52px;height:52px;border-radius:50%;border:2.5px solid var(--gold-dark);display:flex;align-items:center;justify-content:center;font-size:26px;background:radial-gradient(circle,#2a2540,#1c1830);position:relative;box-shadow:0 3px 10px rgba(0,0,0,.5);overflow:hidden}
+.seat-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.seat-avatar.current-turn{border-color:var(--gold-primary);box-shadow:0 0 18px rgba(240,178,50,.5),0 3px 10px rgba(0,0,0,.5);animation:pulse-glow 1.5s infinite}
+/* 淘汰头像：灰色 + X遮罩 */
+.seat-avatar.eliminated-av{filter:grayscale(1);border-color:#555;background:#333 !important;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.seat-avatar .eliminated-x{position:absolute;top:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:#e74c3c;color:#fff;font-size:13px;font-weight:bold;display:flex;align-items:center;justify-content:center;line-height:1;z-index:10;box-shadow:0 2px 8px rgba(231,76,60,.7);border:2px solid #fff}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 14px rgba(240,178,50,.3),0 3px 10px rgba(0,0,0,.5)}50%{box-shadow:0 0 28px rgba(240,178,50,.6),0 3px 10px rgba(0,0,0,.5)}}
+.seat-name{font-size:11px;color:var(--text-primary);margin-top:3px;white-space:nowrap;text-shadow:0 2px 6px rgba(0,0,0,.9);font-weight:bold}
+.seat-card-count{font-size:10px;color:var(--gold-primary);margin-top:2px;background:rgba(0,0,0,.5);padding:1px 7px;border-radius:8px;white-space:nowrap}
+.seat-status{font-size:8px;margin-top:2px;padding:1px 7px;border-radius:8px;background:rgba(240,178,50,.12);color:var(--gold-primary);letter-spacing:1px}
+.seat-status.played{background:rgba(46,204,113,.18);color:#2ecc71}
+
+/* 每个玩家的出牌框(拖放目标) - 圆桌上的虚线框 */
+.play-slot{
+  width:80px;height:110px;border-radius:8px;
+  border:2px dashed rgba(240,178,50,.35);
+  background:rgba(0,0,0,.2);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;position:relative;z-index:10;
+  pointer-events:auto;
+}
+.play-slot.drag-over{
+  border-color:var(--gold-primary);
+  background:rgba(240,178,50,.1);
+  box-shadow:0 0 16px rgba(240,178,50,.25);
+  transform:scale(1.08)
+}
+.play-slot .slot-label{
+  position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);
+  font-size:10px;color:var(--text-secondary);white-space:nowrap;
+  text-shadow:0 1px 4px rgba(0,0,0,.9)
+}
+
+.face-down-card{width:68px;height:96px;border-radius:8px;background:linear-gradient(145deg,#2e2252,#1a1338);border:2px solid var(--gold-dark);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:24px;cursor:default;position:relative;box-shadow:0 6px 20px rgba(0,0,0,.6),inset 0 1px 0 rgba(240,178,50,.15)}
+.face-down-card::after{content:'';position:absolute;inset:4px;border:1px solid rgba(240,178,50,.08);border-radius:5px}
+.face-down-card .plabel{font-size:9px;color:var(--text-secondary);margin-top:3px}
+
+/* 桌面中央区域（开牌/暗牌显示） */
+.table-center{
+  position:absolute;top:46%;left:50%;
+  transform:translate(-50%,-50%);
+  display:flex;gap:12px;flex-wrap:wrap;
+  justify-content:center;align-items:center;
+  z-index:10;pointer-events:none
+}
+
+/* 手牌区 - 底部固定带，不覆盖牌桌 */
+.hand-area{
+  position:absolute;bottom:0;left:0;right:0;
+  display:flex;gap:4px;padding:8px 16px 10px;
+  background:linear-gradient(180deg,rgba(14,12,21,.92),rgba(10,8,16,.98));
+  border-top:1px solid rgba(240,178,50,.18);
+  border-radius:0;
+  min-height:80px;max-height:110px;
+  justify-content:center;overflow-x:auto;
+  box-shadow:0 -4px 20px rgba(0,0,0,.6);z-index:20
+}
+
+/* 拖拽中的手牌 */
+.tft-card.dragging{
+  opacity:.5;transform:scale(.95);z-index:1000
+}
+.tft-card.dragging .tft-frame{
+  outline:2px dashed var(--gold-primary)
+}
+
+/* 出牌框中的缩略卡牌 */
+.slot-mini-card{
+  flex-shrink:0;
+  transition:all .3s;
+}
+.slot-mini-card.dragging{
+  opacity:.5;transform:scale(.9);
+}
+.slot-mini-card:hover{
+  transform:scale(1.06);
+}
+
+/* 手牌区拖放悬停反馈 */
+.hand-area.hand-drag-over{
+  border-top-color:var(--gold-primary)!important;
+  box-shadow:0 0 20px rgba(240,178,50,.3),0 -4px 20px rgba(0,0,0,.6)!important;
+  background:linear-gradient(180deg,rgba(240,178,50,.08),rgba(10,8,16,.98))!important;
+}
+
+/* 倒计时 - 内嵌在右上角控件组 */
+.timer-bar{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(14,12,21,.92);padding:4px 14px;
+  border-radius:16px;border:1px solid rgba(240,178,50,.2);
+  backdrop-filter:blur(6px)
+}
+.timer-text{font-size:20px;font-weight:bold;color:var(--gold-primary);min-width:30px;text-align:center}
+.timer-progress{width:120px;height:5px;background:var(--bg-panel);border-radius:3px;overflow:hidden}
+.timer-progress-bar{height:100%;background:linear-gradient(90deg,var(--gold-primary),var(--gold-light));border-radius:3px;transition:width 1s linear}
+.timer-progress-bar.warning{background:linear-gradient(90deg,#e74c3c,#ff6b35)}
+.round-info{font-size:11px;color:var(--text-secondary)}
+
+/* 棋盘中央大号倒计时 */
+.table-timer{
+  position:absolute;top:46%;left:50%;
+  transform:translate(-50%,-50%);
+  z-index:8;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;
+  transition:opacity .4s;
+}
+.table-timer.hidden{opacity:0;pointer-events:none}
+.table-timer-ring{
+  width:90px;height:90px;border-radius:50%;
+  background:rgba(0,0,0,.45);
+  border:3px solid rgba(240,178,50,.35);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+  backdrop-filter:blur(4px);
+  box-shadow:0 0 30px rgba(0,0,0,.5),0 0 12px rgba(240,178,50,.08);
+}
+.table-timer-ring.warning{
+  border-color:rgba(231,76,60,.7);
+  box-shadow:0 0 30px rgba(0,0,0,.5),0 0 20px rgba(231,76,60,.25);
+  animation:timer-pulse .8s infinite;
+}
+.table-timer-ring.urgent{
+  border-color:rgba(231,76,60,.9);
+  animation:timer-urgent .4s infinite;
+}
+@keyframes timer-pulse{
+  0%,100%{box-shadow:0 0 30px rgba(0,0,0,.5),0 0 20px rgba(231,76,60,.2)}
+  50%{box-shadow:0 0 30px rgba(0,0,0,.5),0 0 36px rgba(231,76,60,.45)}
+}
+@keyframes timer-urgent{
+  0%,100%{box-shadow:0 0 30px rgba(0,0,0,.5),0 0 20px rgba(231,76,60,.3);transform:scale(1)}
+  50%{box-shadow:0 0 30px rgba(0,0,0,.5),0 0 40px rgba(231,76,60,.6);transform:scale(1.06)}
+}
+.table-timer-num{
+  font-size:42px;font-weight:900;
+  color:var(--gold-primary);
+  text-shadow:0 2px 12px rgba(240,178,50,.4),0 0 30px rgba(240,178,50,.15);
+  line-height:1;
+}
+.table-timer-ring.warning .table-timer-num,
+.table-timer-ring.urgent .table-timer-num{
+  color:#e74c3c;
+  text-shadow:0 2px 12px rgba(231,76,60,.5),0 0 30px rgba(231,76,60,.2);
+}
+.table-timer-label{
+  margin-top:6px;font-size:10px;color:var(--text-secondary);
+  letter-spacing:2px;text-shadow:0 1px 4px rgba(0,0,0,.9);
+}
+
+/* 操作按钮 - 内嵌在右上角控件组 */
+.action-bar{
+  display:flex;align-items:center;gap:6px
+}
+.action-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;border:2px solid;transition:all .3s;letter-spacing:1px}
+.btn-play{background:linear-gradient(180deg,#f0b232,#a67c1a);border-color:var(--gold-primary);color:#1a1625;box-shadow:0 4px 12px rgba(240,178,50,.3)}
+.btn-play:hover{box-shadow:0 6px 20px rgba(240,178,50,.5);transform:scale(1.05)}
+.btn-play:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-surrender{background:none;border-color:#c0392b;color:#e74c3c;padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;border:1.5px solid;transition:all .3s;letter-spacing:1px}
+.btn-surrender:hover{background:rgba(231,76,60,.15);border-color:#e74c3c;transform:scale(1.05)}
+
+/* 我的信息 - 手牌区上方 */
+.my-info{
+  position:absolute;bottom:88px;left:50%;transform:translateX(-50%);
+  display:flex;gap:16px;align-items:center;font-size:12px;
+  color:var(--text-secondary);z-index:20;
+  background:rgba(10,8,16,.5);padding:2px 14px;border-radius:10px;
+}
+.my-cards{color:var(--gold-primary);font-weight:bold}
+
+/* 战报样式见下方游戏区专用定义 */
+.log-area::-webkit-scrollbar{width:3px}
+.log-area::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:2px}
+
+/* ============================================================
+   TFT / 金铲铲 风格卡牌
+   参考：角色插画 + 品质边框 + 名字牌 + 费用宝石 + 描述
+   ============================================================ */
+.tft-card{
+  width:var(--card-w);height:var(--card-h);
+  border-radius:10px;cursor:pointer;position:relative;
+  transition:all .3s cubic-bezier(.2,.8,.2,1);
+  flex-shrink:0;
+  transform-style:preserve-3d;
+  perspective:800px;
+}
+.tft-card:hover{transform:translateY(-8px) scale(1.04);z-index:10}
+.tft-card.selected{transform:translateY(-12px) scale(1.06);z-index:11;outline:3px solid var(--gold-primary);outline-offset:3px}
+
+/* 卡牌外框 - 品质边框色 */
+.tft-frame{
+  width:100%;height:100%;border-radius:10px;
+  overflow:hidden;position:relative;
+  background:linear-gradient(170deg,#1a152e 0%,#12101f 50%,#0d0b16 100%);
+  border:3px solid #333;
+  box-shadow:
+    0 8px 28px rgba(0,0,0,.65),
+    0 2px 8px rgba(0,0,0,.4),
+    inset 0 0 0 1px rgba(255,255,255,.04);
+}
+
+/* 品质等级边框 */
+.tft-frame.cost-1{border-color:var(--tft-cost-1);
+  box-shadow:0 0 14px rgba(46,204,113,.25),0 8px 28px rgba(0,0,0,.65),inset 0 0 12px rgba(46,204,113,.05)}
+.tft-frame.cost-2{border-color:var(--tft-cost-2);
+  box-shadow:0 0 18px rgba(52,152,219,.3),0 8px 28px rgba(0,0,0,.65),inset 0 0 14px rgba(52,152,219,.06)}
+.tft-frame.cost-3{border-color:var(--tft-cost-3);
+  box-shadow:0 0 22px rgba(155,89,182,.35),0 8px 28px rgba(0,0,0,.65),inset 0 0 16px rgba(155,89,182,.08)}
+.tft-frame.cost-4{border-color:var(--tft-cost-4);
+  box-shadow:0 0 28px rgba(255,140,0,.45),0 8px 28px rgba(0,0,0,.65),inset 0 0 18px rgba(255,140,0,.1);
+  animation:tft-shimmer-gold 2.8s infinite}
+
+@keyframes tft-shimmer-gold{
+  0%,100%{box-shadow:0 0 22px rgba(255,140,0,.35),0 8px 28px rgba(0,0,0,.65),inset 0 0 14px rgba(255,140,0,.07)}
+  50%{box-shadow:0 0 38px rgba(255,140,0,.55),0 8px 28px rgba(0,0,0,.65),inset 0 0 24px rgba(255,140,0,.13)}
+}
+
+/* 内部金线装饰 */
+.tft-frame::before{content:'';position:absolute;inset:4px;border:1px solid rgba(240,178,50,.1);border-radius:7px;pointer-events:none;z-index:2}
+.tft-frame::after{content:'';position:absolute;top:0;left:0;right:0;height:36%;background:linear-gradient(180deg,rgba(255,255,255,.035) 0%,transparent 100%);border-radius:7px 7px 0 0;pointer-events:none;z-index:2}
+
+/* === 角色插画区域 === */
+.tft-art{
+  position:absolute;top:6px;left:6px;right:6px;
+  height:98px;border-radius:7px 7px 0 0;
+  overflow:hidden;
+  background:linear-gradient(170deg,#1e1a32 0%,#151220 100%);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1;
+}
+
+/* 角色SVG/CSS插画容器 */
+.tft-art-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative}
+
+/* 插画底部渐变遮罩（过渡到信息栏） */
+.tft-art-mask{
+  position:absolute;bottom:0;left:0;right:0;height:28px;
+  background:linear-gradient(to top,rgba(12,10,18,.95) 0%,transparent 100%);
+  border-radius:0 0 7px 0;z-index:3;pointer-events:none;
+}
+
+/* === 信息栏区域 === */
+.tft-info{
+  position:absolute;bottom:0;left:0;right:0;
+  height:64px;
+  background:linear-gradient(180deg,rgba(18,15,28,.97),rgba(12,10,20,1));
+  border-top:1px solid rgba(240,178,50,.1);
+  display:flex;flex-direction:column;align-items:center;
+  padding:3px 6px 6px;z-index:4;
+  border-radius:0 0 7px 7px;
+}
+
+/* 名字 */
+.tft-name{font-size:13px;font-weight:bold;color:var(--text-primary);
+  text-shadow:0 1px 4px rgba(0,0,0,.9);letter-spacing:2px;white-space:nowrap;
+  line-height:1.2;text-align:center}
+
+/* 等级+角色描述行 */
+.tft-desc{font-size:9px;color:var(--text-secondary);margin-top:1px;
+  text-align:center;white-space:nowrap;line-height:1.2}
+
+/* 底部费用宝石 + 等级标签 */
+.tft-footer{
+  display:flex;width:100%;justify-content:space-between;align-items:center;
+  margin-top:2px;padding:0 2px
+}
+
+/* 左侧：费用宝石 */
+.tft-cost{
+  display:flex;align-items:center;gap:3px;
+  font-size:11px;font-weight:bold;
+}
+.tft-gem{
+  width:15px;height:15px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:bold;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.8);
+  line-height:1;
+}
+.cost-1 .tft-gem{background:radial-gradient(circle at 35% 35%,#70e8a0,#2ecc71);
+  box-shadow:0 0 6px rgba(46,204,113,.4)}
+.cost-2 .tft-gem{background:radial-gradient(circle at 35% 35%,#6cb4e8,#3498db);
+  box-shadow:0 0 8px rgba(52,152,219,.45)}
+.cost-3 .tft-gem{background:radial-gradient(circle at 35% 35%,#d4a0e8,#9b59b6);
+  box-shadow:0 0 9px rgba(155,89,182,.5)}
+.cost-4 .tft-gem{background:radial-gradient(circle at 35% 35%,#ffc060,#ff8c00);
+  box-shadow:0 0 12px rgba(255,140,0,.6)}
+
+.cost-1 .tft-cost-num{color:var(--tft-cost-1)}
+.cost-2 .tft-cost-num{color:var(--tft-cost-2)}
+.cost-3 .tft-cost-num{color:var(--tft-cost-3)}
+.cost-4 .tft-cost-num{color:var(--tft-cost-4)}
+
+/* 右侧：等级标签 */
+.tft-rank-tag{
+  font-size:9px;font-weight:bold;padding:1px 6px;border-radius:3px;
+  letter-spacing:1px;
+}
+.cost-1 .tft-rank-tag{color:var(--tft-cost-1);background:rgba(46,204,113,.1)}
+.cost-2 .tft-rank-tag{color:var(--tft-cost-2);background:rgba(52,152,219,.1)}
+.cost-3 .tft-rank-tag{color:var(--tft-cost-3);background:rgba(155,89,182,.1)}
+.cost-4 .tft-rank-tag{color:var(--tft-cost-4);background:rgba(255,140,0,.12)}
+
+/* ============================================================
+   角色 CSS/SVG 插画定义
+   每个角色一个独特的视觉造型
+   ============================================================ */
+
+/* --- 🐛 虫 (Chong) - 蠕虫形态 --- */
+.art-chong{position:relative;width:72px;height:78px}
+.art-chong-body{
+  position:absolute;width:56px;height:22px;
+  background:linear-gradient(180deg,#4ade80 0%,#22c55e 40%,#16a34a 100%);
+  border-radius:50%;top:30px;left:8px;
+  box-shadow:0 3px 8px rgba(0,0,0,.4),inset 0 -3px 6px rgba(0,0,0,.15);
+}
+.art-chong-body::before{
+  content:'';position:absolute;width:14px;height:18px;
+  background:linear-gradient(180deg,#4ade80,#22c55e);
+  border-radius:50% 50% 40% 40%;
+  top:-12px;left:4px;transform:rotate(-15deg);
+  box-shadow:0 2px 4px rgba(0,0,0,.3)
+}
+.art-chong-body::after{
+  content:'';position:absolute;width:14px;height:18px;
+  background:linear-gradient(180deg,#4ade80,#22c55e);
+  border-radius:50% 50% 40% 40%;
+  top:-12px;right:4px;transform:rotate(15deg);
+  box-shadow:0 2px 4px rgba(0,0,0,.3)
+}
+.art-chong-head{
+  position:absolute;width:20px;height:24px;
+  background:linear-gradient(180deg,#86efac 0%,#4ade80 50%,#22c55e 100%);
+  border-radius:45%;top:16px;left:26px;
+  z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.3)
+}
+.art-chong-eye{
+  position:absolute;width:5px;height:6px;
+  background:#1a1a2e;border-radius:50%;
+  top:22px;z-index:3;
+}
+.art-chong-eye.left{left:29px}.art-chong-eye.right{left:38px}
+.art-chong-eye::after{
+  content:'';position:absolute;width:2px;height:2px;
+  background:#fff;border-radius:50%;top:1px;left:1px
+}
+/* 身体环节纹路 */
+.art-chong-seg{
+  position:absolute;width:48px;height:3px;
+  background:rgba(0,0,0,.12);border-radius:2px;top:38px;left:14px;
+}
+.art-chong-seg.s2{top:43px;width:42px;left:17px}
+.art-chong-seg.s3{top:48px;width:34px;left:21px}
+/* 尾巴 */
+.art-chong-tail{
+  position:absolute;width:18px;height:10px;
+  background:linear-gradient(90deg,#22c55e,transparent);
+  border-radius:0 50% 50% 0;top:38px;right:0;
+  transform:rotate(-10deg)
+}
+
+/* --- 🐔 鸡 (Ji) - 公鸡形态 --- */
+.art-ji{position:relative;width:72px;height:78px}
+.art-ji-body{
+  position:absolute;width:40px;height:44px;
+  background:linear-gradient(180deg,#fef3c7 0%,#fcd34d 40%,#f59e0b 100%);
+  border-radius:45% 45% 42% 42%;top:24px;left:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 -4px 8px rgba(0,0,0,.1);
+}
+.art-ji-head{
+  position:absolute;width:26px;height:26px;
+  background:linear-gradient(180deg,#fef3c7,#fcd34d);
+  border-radius:50%;top:8px;left:23px;
+  z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.25)
+}
+/* 鸡冠 */
+.art-ji-comb{
+  position:absolute;width:14px;height:14px;
+  background:linear-gradient(180deg,#ef4444,#dc2626);
+  border-radius:50% 50% 30% 30%;top:0;left:26px;
+  clip-path:polygon(50% 0%,0% 80%,20% 60%,35% 90%,50% 70%,65% 95%,80% 58%,100% 82%);
+  filter:drop-shadow(0 1px 3px rgba(220,38,38,.4));
+  z-index:3
+}
+/* 嘴喙 */
+.art-ji-beak{
+  position:absolute;width:10px;height:8px;
+  background:linear-gradient(180deg,#f97316,#ea580c);
+  clip-path:polygon(50% 100%,0% 0%,100% 0%);
+  top:26px;left:31px;z-index:3
+}
+/* 鸡眼睛 */
+.art-ji-eye{
+  position:absolute;width:5px;height:6px;
+  background:#1a1a2e;border-radius:50%;top:16px;z-index:3;
+}
+.art-ji-eye.left{left:27px}.art-ji-eye.right{left:37px}
+.art-ji-eye::after{
+  content:'';position:absolute;width:2px;height:2px;
+  background:#fff;border-radius:50%;top:1px;left:1px
+}
+/* 鸡翅膀 */
+.art-ji-wing{
+  position:absolute;width:18px;height:24px;
+  background:linear-gradient(135deg,#fbbf24,#f59e0b);
+  border-radius:40% 60% 50% 40%;
+  top:32px;left:6px;
+  transform:rotate(-10deg);
+  box-shadow:0 2px 4px rgba(0,0,0,.15)
+}
+/* 鸡尾羽 */
+.art-ji-tail{
+  position:absolute;top:18px;right:10px;
+  z-index:1;
+}
+.art-ji-feather{
+  position:absolute;width:6px;height:20px;
+  background:linear-gradient(180deg,#dc2626,#991b1b);
+  border-radius:50% 50% 30% 30%;transform-origin:bottom center
+}
+.art-ji-feather:nth-child(1){transform:rotate(-25deg);left:0}
+.art-ji-feather:nth-child(2){transform:rotate(-8deg);left:7px;height:24px}
+.art-ji-feather:nth-child(3){transform:rotate(8deg);left:14px;height:22px}
+.art-ji-feather:nth-child(4){transform:rotate(25deg);left:21px;height:18px}
+/* 鸡爪 */
+.art-ji-leg{
+  position:absolute;width:3px;height:12px;
+  background:#f59e0b;top:66px;border-radius:2px
+}
+.art-ji-leg.l1{left:24px}.art-ji-leg.l2{left:36px}
+
+/* --- 🚩 旗杆 (Qigan) - 战旗形态 --- */
+.art-qigan{position:relative;width:72px;height:78px}
+.art-qigan-pole{
+  position:absolute;width:6px;height:66px;
+  background:linear-gradient(90deg,#94a3b8,#cbd5e1,#94a3b8);
+  border-radius:3px;top:4px;left:33px;
+  box-shadow:2px 0 8px rgba(0,0,0,.3)
+}
+/* 旗杆顶部装饰球 */
+.art-qigan-top{
+  position:absolute;width:12px;height:12px;
+  background:radial-gradient(circle at 35% 35%,#fcd34d,#d97706);
+  border-radius:50%;top:0;left:30px;
+  box-shadow:0 0 6px rgba(217,119,6,.4);
+  z-index:3
+}
+/* 旗帜 */
+.art-qigan-flag{
+  position:absolute;width:36px;height:26px;
+  background:linear-gradient(135deg,#dc2626 0%,#ef4444 40%,#b91c1c 100%);
+  clip-path:polygon(0% 0%,95% 0%,100% 15%,95% 35%,100% 50%,92% 70%,85% 100%,0% 90%);
+  top:8px;left:39px;z-index:2;
+  box-shadow:3px 2px 8px rgba(0,0,0,.3);
+  animation:qigan-wave 2.5s ease-in-out infinite alternate
+}
+@keyframes qigan-wave{
+  0%{transform:skewY(0deg) scaleX(1)}100%{transform:skewY(2deg) scaleX(.96)}
+}
+/* 旗帜上的星形图案 */
+.art-qigan-flag::after{
+  content:'★';position:absolute;
+  color:rgba(253,224,71,.7);font-size:14px;
+  top:4px;left:10px;text-shadow:0 1px 3px rgba(0,0,0,.3)
+}
+/* 旗杆底座 */
+.art-qigan-base{
+  position:absolute;width:20px;height:8px;
+  background:linear-gradient(180deg,#78716c,#57534e);
+  border-radius:4px;top:66px;left:26px;
+  box-shadow:0 2px 4px rgba(0,0,0,.3)
+}
+
+/* --- 🐺 黄狼 (Huanglang) - 狼头形态 --- */
+.art-huanglang{position:relative;width:72px;height:78px}
+/* 狼头轮廓 */
+.art-hl-head{
+  position:absolute;width:50px;height:44px;
+  background:linear-gradient(180deg,#92400e 0%,#78350f 40%,#5c2d0a 100%);
+  border-radius:48% 48% 42% 42%;top:12px;left:11px;
+  box-shadow:0 4px 12px rgba(0,0,0,.4),inset 0 -3px 8px rgba(0,0,0,.2);
+  z-index:1
+}
+/* 狼耳朵 */
+.art-hl-ear{
+  position:absolute;width:14px;height:20px;
+  background:linear-gradient(135deg,#92400e,#78350f);
+  clip-path:polygon(50% 0%,0% 100%,100% 100%);
+  top:2px;z-index:0
+}
+.art-hl-ear.left{left:14px;transform:rotate(-12deg)}
+.art-hl-ear.right{right:14px;transform:rotate(12deg)}
+/* 狼耳朵内部 */
+.art-hl-ear-inner{
+  position:absolute;width:8px;height:12px;
+  background:linear-gradient(135deg,#fca5a5,#f87171);
+  clip-path:polygon(50% 20%,0% 100%,100% 100%);
+  top:6px;z-index:1
+}
+.art-hl-ear-inner.left{left:17px;transform:rotate(-12deg)}
+.art-hl-ear-inner.right{right:17px;transform:rotate(12deg)}
+/* 面部白色区域 */
+.art-hl-face{
+  position:absolute;width:38px;height:30px;
+  background:linear-gradient(180deg,#fef3c7 0%,#fde68a 100%);
+  border-radius:40% 40% 45% 45%;
+  top:24px;left:17px;z-index:2;
+  box-shadow:inset 0 -2px 4px rgba(0,0,0,.06)
+}
+/* 狼眼 - 凶狠三角眼 */
+.art-hl-eye{
+  position:absolute;width:10px;height:7px;
+  background:linear-gradient(180deg,#fde047 0%,#facc15 50%,#eab308 100%);
+  clip-path:polygon(0% 0%,100% 0%,85% 100%,15% 100%);
+  top:28px;z-index:3
+}
+.art-hl-eye.left{left:22px}.art-hl-eye.right{left:39px}
+/* 瞳孔 */
+.art-hl-eye::after{
+  content:'';position:absolute;width:4px;height:4px;
+  background:#1a1a2e;border-radius:50%;top:1px;left:3px
+}
+/* 狼鼻子 */
+.art-hl-nose{
+  position:absolute;width:10px;height:7px;
+  background:linear-gradient(180deg,#1a1a2e,#333);
+  border-radius:50% 50% 45% 45%;top:38px;left:31px;
+  z-index:3
+}
+/* 狼嘴/獠牙区域 */
+.art-hl-snout{
+  position:absolute;width:16px;height:8px;
+  background:linear-gradient(180deg,#fef3c7,#fde68a);
+  border-radius:0 0 50% 50%;top:44px;left:28px;
+  z-index:2
+}
+/* 獠牙 */
+.art-hl-fang{
+  position:absolute;width:3px;height:7px;
+  background:#fff;border-radius:0 0 2px 2px;top:49px;z-index:3
+}
+.art-hl-fang.f1{left:29px}.art-hl-fang.f2{left:40px}
+/* 狼胡须 */
+.art-hl-whisker{
+  position:absolute;width:16px;height:1px;
+  background:rgba(0,0,0,.25);top:48px
+}
+.art-hl-whisker.w1{left:10px;transform:rotate(-8deg)}
+.art-hl-whisker.w2{left:10px;transform:rotate(0deg);top:50px}
+.art-hl-whisker.w3{right:10px;transform:rotate(8deg)}
+.art-hl-whisker.w4{right:10px;transform:rotate(0deg);top:50px}
+/* 疤痕细节 */
+.art-hl-scar{
+  position:absolute;width:14px;height:1px;
+  background:rgba(0,0,0,.2);top:34px;left:46px;
+  transform:rotate(25deg)
+}
+
+/* --- 🏔 土地 (Tudi) - 千沟万壑黄土高坡 --- */
+.art-tudi{position:relative;width:72px;height:78px;overflow:visible}
+/* 天空背景渐变 */
+.art-td-sky{
+  position:absolute;top:0;left:0;right:0;height:30px;
+  background:linear-gradient(180deg,
+    #87ceeb 0%,#b4c8dc 40%,
+    #d4a574 75%,#c4956a 100%);
+  border-radius:7px 7px 0 0;z-index:0
+}
+/* 远山剪影 */
+.art-td-mtn{
+  position:absolute;top:10px;left:0;right:0;height:24px;
+  z-index:1;
+}
+.art-td-mtn svg{width:100%;height:100%}
+/* 黄土高坡主体 - 沟壑地形 */
+.art-td-ground{
+  position:absolute;top:24px;left:0;right:0;bottom:0;
+  background:linear-gradient(180deg,
+    #d4a574 0%,#c4956a 20%,
+    #b8865a 50%,#a67748 80%,
+    #8b6543 100%);
+  border-radius:0 0 7px 7px;z-index:2;
+  overflow:hidden;
+  box-shadow:inset 0 4px 12px rgba(139,101,67,.3)
+}
+/* 沟壑纹路 - 用多层CSS实现千沟万壑效果 */
+.art-td-gully{
+  position:absolute;width:100%;height:100%;z-index:3
+}
+.art-td-gully::before{
+  content:'';position:absolute;
+  width:120%;height:3px;background:rgba(90,62,34,.4);
+  top:8px;left:-10%;border-radius:2px;
+  transform:rotate(-3deg);
+  box-shadow:
+    0 8px 0 rgba(90,62,34,.35),
+    0 18px 0 rgba(90,62,34,.3),
+    0 30px 0 rgba(90,62,34,.35),
+    0 42px 0 rgba(90,62,34,.3),
+    0 54px 0 rgba(90,62,34,.25),
+    0 66px 0 rgba(90,62,34,.2)
+}
+.art-td-gully::after{
+  content:'';position:absolute;
+  width:80%;height:2px;background:rgba(70,48,26,.3);
+  top:14px;left:10%;border-radius:1px;
+  transform:rotate(5deg);
+  box-shadow:
+    0 12px 0 rgba(70,48,26,.25),
+    0 26px 0 rgba(70,48,26,.28),
+    0 40px 0 rgba(70,48,26,.22),
+    0 54px 0 rgba(70,48,26,.2)
+}
+/* 纵向沟壑 */
+.art-td-vline{
+  position:absolute;width:2px;height:100%;
+  background:linear-gradient(180deg,
+    transparent 0%,rgba(90,62,34,.3) 20%,
+    rgba(90,62,34,.4) 50%,rgba(90,62,34,.25) 80%,
+    transparent 100%);
+  top:0;z-index:3
+}
+.art-td-vline.v1{left:15%;transform:skewX(-5deg)}
+.art-td-vline.v2{left:42%;transform:skewX(3deg);opacity:.7}
+.art-td-vline.v3{left:72%;transform:skewX(-4deg);opacity:.5}
+.art-td-vline.v4{left:88%;transform:skewX(6deg);opacity:.3}
+/* 窑洞 */
+.art-td-cave{
+  position:absolute;width:18px;height:12px;
+  background:linear-gradient(180deg,#3d2817,#2a1a0f);
+  border-radius:50% 50% 20% 20%;top:38px;left:27px;
+  z-index:4;box-shadow:inset 0 2px 4px rgba(0,0,0,.5)
+}
+/* 窑洞拱门亮光 */
+.art-td-cave-light{
+  position:absolute;width:14px;height:8px;
+  background:linear-gradient(180deg,#fcd34d 0%,#f59e0b 60%,transparent 100%);
+  border-radius:50% 50% 20% 20%;top:39px;left:29px;
+  z-index:5;opacity:.5
+}
+/* 小树/枯草 */
+.art-td-tree{
+  position:absolute;top:20px;z-index:3
+}
+.art-td-tree.t1{left:6px}.art-td-tree.t2{right:8px}
+.art-td-trunk{
+  position:absolute;width:3px;height:10px;
+  background:#5c3d1e;bottom:0;left:50%;transform:translateX(-50%);
+  border-radius:1px
+}
+.art-td-leaves{
+  position:absolute;width:12px;height:10px;
+  background:radial-gradient(ellipse,#228B22 0%,#165018 100%);
+  border-radius:50% 50% 40% 40%;bottom:8px;left:50%;
+  transform:translateX(-50%);
+  opacity:.7
+}
+
+/* 战报 */.log-area{position:absolute;top:50px;left:10px;width:200px;max-height:220px;overflow-y:auto;background:rgba(10,8,18,.88);border-radius:10px;border:1px solid rgba(240,178,50,.1);padding:6px;font-size:10px;backdrop-filter:blur(4px);z-index:20}
+.log-item{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.03);color:var(--text-secondary)}
+.log-item.koujue{color:var(--gold-primary);font-weight:bold;font-size:11px}
+.log-item.win{color:#2ecc71}
+.log-item.lose{color:var(--text-damage)}
+.log-area::-webkit-scrollbar{width:3px}
+.log-area::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:2px}
+
+/* 开牌动画 */
+.reveal-card{animation:card-reveal-3d .7s cubic-bezier(.2,.8,.2,1)}
+@keyframes card-reveal-3d{0%{transform:rotateY(180deg) scale(.7);opacity:.5}40%{transform:rotateY(90deg) scale(1.15);opacity:.8}100%{transform:rotateY(0) scale(1);opacity:1}}
+
+/* 口诀弹出 */
+.koujue-popup{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:bold;color:var(--gold-primary);text-shadow:0 0 30px rgba(240,178,50,.8),0 0 60px rgba(240,178,50,.4),0 4px 12px rgba(0,0,0,.9);z-index:100;animation:koujue-anim 2.5s ease-out forwards;pointer-events:none;white-space:nowrap;letter-spacing:4px}
+@keyframes koujue-anim{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}10%{opacity:1;transform:translate(-50%,-50%) scale(1.3)}25%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1.05)}}
+
+/* 通吃特效弹出 */
+.sweep-popup{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);font-size:42px;font-weight:bold;z-index:110;animation:sweep-anim 2.8s ease-out forwards;pointer-events:none;white-space:nowrap;letter-spacing:6px}
+.sweep-popup.win{text-shadow:0 0 40px rgba(255,215,0,1),0 0 80px rgba(255,140,0,.6),0 4px 16px rgba(0,0,0,.9);color:#ffd700}
+.sweep-popup.lose{text-shadow:0 0 30px rgba(255,68,68,.8),0 4px 12px rgba(0,0,0,.9);color:#ff4444}
+@keyframes sweep-anim{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-5deg)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.4) rotate(2deg)}30%{transform:translate(-50%,-50%) scale(1) rotate(0deg)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-65%) scale(1.02)}}
+
+/* 语音播报指示器 */
+.voice-indicator{position:absolute;top:46%;left:50%;transform:translate(-50%,40px);display:flex;align-items:center;gap:6px;background:rgba(10,8,18,.8);padding:6px 16px;border-radius:20px;border:1px solid rgba(240,178,50,.2);z-index:99;animation:voice-pulse 1s infinite;pointer-events:none}
+.voice-indicator span{color:var(--gold-primary);font-size:11px;letter-spacing:1px}
+@keyframes voice-pulse{0%,100%{opacity:.6}50%{opacity:1}}
+.voice-bar{width:3px;height:12px;background:var(--gold-primary);border-radius:2px;animation:voice-bar-anim .6s infinite alternate}
+.voice-bar:nth-child(2){animation-delay:.1s;height:16px}
+.voice-bar:nth-child(3){animation-delay:.2s;height:10px}
+.voice-bar:nth-child(4){animation-delay:.3s;height:14px}
+@keyframes voice-bar-anim{from{transform:scaleY(.3)}to{transform:scaleY(1)}}
+
+/* 获胜 */
+.victory-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;animation:fade-in .5s}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+.victory-title{font-size:56px;font-weight:bold;background:linear-gradient(180deg,#ffe08a,#f0b232,#a67c1a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 4px 20px rgba(240,178,50,.6));animation:victory-bounce .8s ease-out}
+.victory-title.lose-title{background:linear-gradient(180deg,#ff8888,#e74c3c,#8b1a1a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 4px 20px rgba(231,76,60,.5))}
+@keyframes victory-bounce{0%{transform:scale(.3);opacity:0}50%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+.victory-subtitle{font-size:18px;color:var(--text-secondary);margin-top:12px}
+.victory-btns{margin-top:30px;display:flex;gap:18px}
+
+/* 规则弹窗 */
+.rules-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(4px)}
+.rules-content{background:linear-gradient(160deg,#2a2540,#1c1830);border:2px solid var(--gold-dark);border-radius:14px;padding:30px;max-width:560px;max-height:80vh;overflow-y:auto;color:var(--text-primary)}
+.rules-content h2{color:var(--gold-primary);margin-bottom:14px}
+.rules-content h3{color:var(--gold-light);margin:12px 0 5px}
+.rules-content p{margin:5px 0;font-size:13px;line-height:1.6}
+.koujue-list{background:rgba(0,0,0,.3);border-radius:8px;padding:12px;margin:8px 0;font-size:14px;line-height:2.2}
+.close-btn{margin-top:18px;padding:8px 24px;background:var(--gold-dark);border:none;color:var(--text-primary);border-radius:8px;cursor:pointer;font-size:13px}
+
+/* 头像选择弹窗 */
+.avatar-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(4px)}
+.avatar-content{background:linear-gradient(160deg,#2a2540,#1c1830);border:2px solid var(--gold-dark);border-radius:14px;padding:30px;max-width:480px;color:var(--text-primary)}
+.avatar-content h2{color:var(--gold-primary);margin-bottom:14px;font-size:20px}
+.avatar-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0}
+.avatar-option{width:64px;height:64px;border-radius:50%;border:3px solid var(--gold-dark);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:32px;background:radial-gradient(circle,#2a2540,#1c1830);transition:all .3s;overflow:hidden}
+.avatar-option:hover{border-color:var(--gold-primary);transform:scale(1.1)}
+.avatar-option.selected{border-color:var(--gold-primary);box-shadow:0 0 15px rgba(240,178,50,.4)}
+.avatar-option img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.avatar-upload{margin:12px 0;display:flex;align-items:center;gap:12px}
+.avatar-upload input[type="file"]{display:none}
+.avatar-upload label{padding:8px 16px;background:var(--gold-dark);border-radius:8px;cursor:pointer;font-size:13px;color:var(--text-primary);transition:all .3s}
+.avatar-upload label:hover{background:var(--gold-primary);color:#1a1625}
+.avatar-preview{width:56px;height:56px;border-radius:50%;border:2px solid var(--gold-dark);overflow:hidden;background:#1c1830}
+.avatar-preview img{width:100%;height:100%;object-fit:cover}
+
+/* 语音选择 */
+.voice-select{margin:12px 0}
+.voice-select select{background:var(--bg-panel);color:var(--text-primary);border:1px solid var(--gold-dark);border-radius:6px;padding:6px 10px;font-size:13px;width:100%}
+
+/* 收牌动画 */
+@keyframes card-fly{0%{opacity:1;transform:scale(1)}60%{opacity:.5;transform:scale(.5) translateY(-30px)}100%{opacity:0;transform:scale(.2) translateY(-60px)}}
+.card-collected{animation:card-fly .6s ease-out forwards}
+
+/* 收牌飞行卡牌 - 聚拢动画 */
+.gather-fly-card{
+  border-radius:8px;
+  filter:brightness(1.2) drop-shadow(0 0 8px rgba(240,178,50,0.5));
+}
+/* 赢家聚拢光环 */
+.gather-winner-glow{
+  background:radial-gradient(circle,rgba(240,178,50,0.3) 0%,transparent 70%);
+  border-radius:50%;
+}
+
+/* 投降确认 */
+.surrender-confirm{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:250;backdrop-filter:blur(4px)}
+.surrender-box{background:linear-gradient(160deg,#2a2540,#1c1830);border:2px solid #c0392b;border-radius:14px;padding:30px;text-align:center;max-width:360px}
+.surrender-box h3{color:#e74c3c;margin-bottom:12px;font-size:20px}
+.surrender-box p{color:var(--text-secondary);margin-bottom:20px;font-size:14px}
+.surrender-btns{display:flex;gap:12px;justify-content:center}
+.surrender-btns button{padding:8px 24px;border-radius:8px;cursor:pointer;font-size:14px;border:1px solid;transition:all .3s}
+.surrender-yes{background:#c0392b;border-color:#e74c3c;color:#fff}
+.surrender-yes:hover{background:#e74c3c}
+.surrender-no{background:none;border-color:var(--text-secondary);color:var(--text-secondary)}
+.surrender-no:hover{border-color:var(--gold-primary);color:var(--gold-primary)}
+
+/* ===== 移动端响应式适配 ===== */
+@media(max-width:768px){
+  :root{--card-w:96px;--card-h:130px}
+  /* 开始界面 */
+  .title{font-size:36px;letter-spacing:8px}
+  .subtitle{font-size:12px;margin-bottom:30px}
+  .room-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .room-btn{width:110px;height:130px}
+  .room-icon{font-size:30px}
+  .room-name{font-size:15px}
+  .rules-btn{font-size:12px;padding:8px 20px}
+  /* 牌桌 */
+  .poker-table{width:340px;height:340px}
+  .table-area{width:420px;height:420px}
+  .table-center{width:420px;height:420px}
+  .table-timer{width:70px;height:70px}
+  .table-timer-num{font-size:32px !important}
+  .table-timer-label{font-size:9px}
+  /* 手牌区 */
+  .hand-area{max-height:90px}
+  .hand-area .tft-card{width:68px !important;height:92px !important}
+  /* 战报 */
+  .log-area{width:150px;max-height:160px;font-size:9px;top:40px}
+  /* 顶栏 */
+  .top-bar{font-size:11px;padding:4px 8px}
+  .game-status{font-size:10px}
+  .timer-bar{width:90px}
+  .my-info{font-size:11px}
+  /* 出牌框 */
+  .play-slot{width:62px !important;height:84px !important}
+  .slot-label{font-size:8px !important}
+  .face-down-card{width:58px !important;height:80px !important;font-size:18px !important}
+  .face-down-card .plabel{font-size:8px !important}
+  /* 座位 */
+  .seat-avatar{width:40px;height:40px;font-size:20px}
+  .seat-name{font-size:9px}
+  .seat-card-count{font-size:8px}
+  .seat-status{font-size:7px}
+  .seat-avatar .eliminated-x{width:16px;height:16px;font-size:10px}
+}
+@media(max-width:420px){
+  .poker-table{width:280px;height:280px}
+  .table-area{width:360px;height:360px}
+  .table-center{width:360px;height:360px}
+  .room-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .room-btn{width:95px;height:115px}
+  .hand-area .tft-card{width:56px !important;height:76px !important}
+  .play-slot{width:52px !important;height:72px !important}
+  .face-down-card{width:48px !important;height:66px !important;font-size:14px !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 开始界面 ===== -->
+<div id="start-screen">
+  <button class="sound-toggle" id="sound-toggle" onclick="toggleSound()">🔊</button>
+  <div class="title">虫蛀黄狼皮</div>
+  <div class="subtitle">五指猜拳 · 策略卡牌</div>
+  <div class="room-grid">
+    <div class="room-btn" onclick="startMatch(2)"><div class="room-icon">⚔️</div><div class="room-name">双人间</div><div class="room-desc">1 vs 1</div></div>
+    <div class="room-btn" onclick="startMatch(3)"><div class="room-icon">⚔️</div><div class="room-name">三人间</div><div class="room-desc">三方混战</div></div>
+    <div class="room-btn" onclick="startMatch(4)"><div class="room-icon">⚔️</div><div class="room-name">四人间</div><div class="room-desc">四方混战</div></div>
+    <div class="room-btn" onclick="startMatch(5)"><div class="room-icon">⚔️</div><div class="room-name">五人间</div><div class="room-desc">五方混战</div></div>
+  </div>
+  <button class="rules-btn" onclick="showRules()">📖 查看规则</button>
+  <button class="rules-btn" onclick="showAvatarModal()" style="margin-left:12px">👤 设置头像</button>
+</div>
+
+<!-- ===== 匹配界面 ===== -->
+<div id="match-screen">
+  <div class="match-title">🔍 匹配中...</div>
+  <div class="match-timer" id="match-timer">60</div>
+  <div class="match-players" id="match-players"></div>
+  <div style="color:var(--text-secondary);margin-bottom:14px;font-size:12px" id="match-hint">1分钟后自动匹配AI</div>
+  <button class="cancel-btn" onclick="cancelMatch()">取消匹配</button>
+</div>
+
+<!-- ===== 游戏界面 ===== -->
+<div id="game-screen">
+  <!-- 顶部栏 -->
+  <div class="top-bar">
+    <div class="game-status" id="game-status">牌已发完，游戏开始！（共20张唯一牌）<br>── 共2人 ──<br>── 第1轮 ──</div>
+    <div class="top-right-group">
+      <div class="timer-bar">
+        <div class="round-info" id="round-info">第 1 轮</div>
+        <div class="timer-progress"><div class="timer-progress-bar" id="timer-bar" style="width:100%"></div></div>
+        <div class="timer-text" id="timer-text">30</div>
+      </div>
+      <div class="action-bar" id="action-bar">
+        <button class="btn-surrender" onclick="confirmSurrender()">🏳️ 投降</button>
+        <button class="action-btn btn-play" onclick="location.reload()" style="padding:6px 12px;font-size:11px;background:none;border:1px solid var(--gold-dark);color:var(--gold-primary);border-radius:8px;cursor:pointer;">再来一局</button>
+      </div>
+      <button class="sound-toggle" id="sound-toggle-game" onclick="toggleSound()" style="position:static;padding:6px 10px;font-size:16px">🔊</button>
+    </div>
+  </div>
+  <!-- 圆形牌桌 -->
+  <div class="poker-table"><div class="table-pattern"></div></div>
+  <div class="table-area" id="table-area"></div>
+  <div class="table-center" id="table-center"></div>
+  <!-- 棋盘中央倒计时 -->
+  <div class="table-timer hidden" id="table-timer">
+    <div class="table-timer-ring" id="table-timer-ring">
+      <span class="table-timer-num" id="table-timer-num">30</span>
+    </div>
+    <div class="table-timer-label">出牌倒计时</div>
+  </div>
+  <div class="my-info">
+    <span>👤 你</span>
+    <span>手牌: <span class="my-cards" id="my-card-count">0</span></span>
+    <span style="color:var(--text-secondary);font-size:12px" id="total-card-count">全局20张</span>
+  </div>
+  <div class="hand-area" id="hand-area"></div>
+  <div class="log-area" id="log-area"></div>
+</div>
+
+<!-- ===== 规则弹窗 ===== -->
+<div class="rules-modal" id="rules-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="rules-content">
+    <h2>📖 虫蛀黄狼皮 - 游戏规则</h2>
+    <h3>五角色与口诀</h3>
+    <div class="koujue-list">
+      🐛虫蛀黄狼皮 · 🐛虫蛀老土地 · 🐛虫蛀旗杆脚<br>
+      🏔土地面前不能插旗杆<br>
+      🚩挥着旗杆打黄狼 · 🚩挥着旗杆打母鸡<br>
+      🐔鸡吃虫 · 🐔鸡啄老土地<br>
+      🐺黄狼吃鸡 · 🐺黄狼放屁熏死老土地
+    </div>
+    <h3>等级系统</h3>
+    <p>每个角色有 <span style="color:#ff8c00">★老</span>(4费)、<span style="color:#9b59b6">◆大</span>(3费)、<span style="color:#3498db">●中</span>(2费)、<span style="color:#2ecc71">·小</span>(1费) 四个等级，越老越厉害。</p>
+    <h3>判定规则（两两比对）</h3>
+    <p>1️⃣ 同角色比大小：<span style="color:#ff8c00">老</span>吃<span style="color:#9b59b6">大</span>、<span style="color:#9b59b6">大</span>吃<span style="color:#3498db">中</span>、<span style="color:#3498db">中</span>吃<span style="color:#2ecc71">小</span></p>
+    <p>2️⃣ 不同角色看克制：按口诀判定谁吃谁</p>
+    <p>3️⃣ 同角色不同等级也有克制：等级高的赢</p>
+    <p>4️⃣ 同级无克制：各自收回</p>
+    <h3>收牌规则</h3>
+    <p>• 每人的牌与其他所有人两两比对</p>
+    <p>• 你克谁就收谁的牌，谁克你谁的牌就被收走</p>
+    <p>• 一轮中你可能同时赢某些人、输给另一些人</p>
+    <p>• 3人及以上对战中，如果某玩家赢了所有对手→「通吃！」</p>
+    <p>• 手牌为0淘汰出局，最后留在场上的获胜</p>
+    <button class="close-btn" onclick="document.getElementById('rules-modal').style.display='none'">关 闭</button>
+  </div>
+</div>
+
+<!-- ===== 投降确认弹窗 ===== -->
+<div class="surrender-confirm" id="surrender-confirm" style="display:none">
+  <div class="surrender-box">
+    <h3>⚠️ 确认投降？</h3>
+    <p>投降将直接判负，退出本局游戏</p>
+    <div class="surrender-btns">
+      <button class="surrender-yes" onclick="doSurrender()">确认投降</button>
+      <button class="surrender-no" onclick="document.getElementById('surrender-confirm').style.display='none'">继续战斗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 头像设置弹窗 ===== -->
+<div class="avatar-modal" id="avatar-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="avatar-content">
+    <h2>👤 设置头像</h2>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">选择默认头像或上传自定义头像（未来支持微信头像，付费功能）</p>
+    <div class="avatar-grid" id="avatar-grid"></div>
+    <div class="avatar-upload">
+      <input type="file" id="avatar-file" accept="image/*" onchange="handleAvatarUpload(event)">
+      <label for="avatar-file">📷 上传照片</label>
+      <div class="avatar-preview" id="avatar-preview"><span style="font-size:12px;color:var(--text-secondary)">预览</span></div>
+    </div>
+    <div class="voice-select">
+      <label style="font-size:13px;color:var(--gold-primary)">🎙 播报风格（未来付费解锁更多）</label>
+      <select id="voice-style" onchange="changeVoiceStyle(this.value)">
+        <option value="default">默认播报</option>
+        <option value="guodegang">🎭 郭德纲风格 - 搞笑相声腔</option>
+        <option value="linzhiling">💋 林志玲风格 - 甜美女声</option>
+        <option value="liudehua">🎤 刘德华风格 - 深沉男声</option>
+      </select>
+    </div>
+    <button class="close-btn" onclick="document.getElementById('avatar-modal').style.display='none'">确 定</button>
+  </div>
+</div>
+
+<script>
+/* ========== 头像系统 ========== */
+const DEFAULT_AVATARS=['😊','😎','🤠','🐱','🐶','🦊','🐼','🦁','🐸','🤖','👨‍🍳','🧙','👻','🦸','海盗🦜'];
+let myAvatar='😊';
+let myAvatarType='emoji';
+let myAvatarUrl='';
+
+function showAvatarModal(){
+  const modal=document.getElementById('avatar-modal');
+  modal.style.display='flex';
+  const grid=document.getElementById('avatar-grid');
+  grid.innerHTML='';
+  DEFAULT_AVATARS.forEach((av,i)=>{
+    const d=document.createElement('div');
+    d.className='avatar-option'+(myAvatar===av&&myAvatarType==='emoji'?' selected':'');
+    d.textContent=av;
+    d.onclick=()=>{
+      myAvatar=av;myAvatarType='emoji';myAvatarUrl='';
+      grid.querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('selected'));
+      d.classList.add('selected');
+      document.getElementById('avatar-preview').innerHTML=`<span style="font-size:28px">${av}</span>`;
+    };
+    grid.appendChild(d);
+  });
+  if(myAvatarType==='url'&&myAvatarUrl){
+    document.getElementById('avatar-preview').innerHTML=`<img src="${myAvatarUrl}">`;
+  }
+}
+
+function handleAvatarUpload(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    myAvatarType='url';myAvatarUrl=ev.target.result;
+    document.getElementById('avatar-preview').innerHTML=`<img src="${myAvatarUrl}">`;
+    document.getElementById('avatar-grid').querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('selected'));
+  };
+  reader.readAsDataURL(file);
+}
+
+function getAvatarHTML(player){
+  if(player.id===0&&myAvatarType==='url'&&myAvatarUrl){
+    return `<img src="${myAvatarUrl}" alt="头像">`;
+  }
+  return player.emoji;
+}
+
+/* ========== 语音播报系统 - 搞笑明星风格 ========== */
+let speechReady='speechSynthesis' in window;
+let currentVoiceStyle='default';
+
+function changeVoiceStyle(v){currentVoiceStyle=v}
+
+const VOICE_STYLES={
+  default:{rate:1.0,pitch:1.1,prefix:'',suffix:''},
+  guodegang:{rate:0.85,pitch:0.7,prefix:'嘿！',suffix:'，您说是不是这个理儿！'},
+  linzhiling:{rate:0.9,pitch:1.7,prefix:'',suffix:'～加油哦～'},
+  liudehua:{rate:0.8,pitch:0.6,prefix:'嗯～',suffix:'，恭喜啊！'}
+};
+
+// 搞笑版口诀
+const KOUJUE_FUNNY={
+  default:{
+    'chong>huanglang':'虫蛀黄狼皮！','chong>tudi':'虫蛀老土地！','chong>qigan':'虫蛀旗杆脚！',
+    'tudi>qigan':'土地面前不能插旗杆！','qigan>huanglang':'挥着旗杆打黄狼！','qigan>ji':'挥着旗杆打母鸡！',
+    'ji>chong':'鸡吃虫！','ji>tudi':'鸡啄老土地！','huanglang>ji':'黄狼吃鸡！','huanglang>tudi':'黄狼放屁熏死老土地！',
+    'same_rank':'大吃小，天经地义！',
+    'sweep_win':'哇，通吃了！','sweep_lose':'操，被通吃啦！'
+  },
+  guodegang:{
+    'chong>huanglang':'嘿！小虫子把黄狼皮给啃了，你说这事儿闹的！','chong>tudi':'土地爷也挡不住我这小虫子！嘿！','chong>qigan':'旗杆？我啃！管你多硬！',
+    'tudi>qigan':'旗杆想插我土地上？没门儿！嘿！','qigan>huanglang':'一旗杆抽过去，黄狼就老实了！','qigan>ji':'母鸡也敢跟我旗杆叫板？打！',
+    'ji>chong':'小虫子，给我当点心！咯咯哒！','ji>tudi':'土地算什么，我鸡大爷也啄！','huanglang>ji':'嘿嘿，黄狼我最爱吃鸡了！','huanglang>tudi':'噗——放个屁，土地熏晕了！',
+    'same_rank':'大的欺负小的，这不很正常嘛！嘿！',
+    'sweep_win':'哇哈！通吃了！这叫什么？这叫一统江湖！您说是不是这个理儿！','sweep_lose':'哎哟我去……被通吃了！这运气也是没谁了！'
+  },
+  linzhiling:{
+    'chong>huanglang':'小虫虫蛀黄狼皮咯～好厉害哦～','chong>tudi':'虫虫连土地都不怕呢～','chong>qigan':'旗杆也被虫虫蛀了呀～',
+    'tidi>qigan':'土地前面不可以插旗杆哦～','qigan>huanglang':'旗杆打黄狼～要乖乖哦～','qigan>ji':'旗杆打母鸡～好凶哦～',
+    'ji>chong':'鸡鸡吃虫虫啦～','ji>tudi':'鸡鸡啄土地～你好棒哦～','huanglang>ji':'黄狼吃鸡鸡～嘻嘻～','huanglang>tudi':'黄狼放屁熏土地～好臭哦～',
+    'same_rank':'大的欺负小的～不可以这样哦～',
+    'sweep_win':'哇～通吃了耶！太棒啦～人家好开心哦～','sweep_lose':'呜呜呜……被通吃了啦～不要嘛～'
+  },
+  liudehua:{
+    'chong>huanglang':'虫蛀黄狼皮，这就是命运。','chong>tudi':'虫蛀土地，该来的总会来。','chong>qigan':'虫蛀旗杆脚，一切都是最好的安排。',
+    'tudi>qigan':'土地面前不能插旗杆，这是规矩。','qigan>huanglang':'挥着旗杆打黄狼，男人就要有担当。','qigan>ji':'挥着旗杆打母鸡，有时候就是这样。',
+    'ji>chong':'鸡吃虫，这就是生活。','ji>tudi':'鸡啄老土地，没办法，这就是江湖。','huanglang>ji':'黄狼吃鸡，今天你运气不好。','huanglang>tudi':'黄狼放屁熏死老土地，抱歉了。',
+    'same_rank':'大的吃小的，这就是游戏规则。',
+    'sweep_win':'通吃。有时候，一切尽在掌握之中。','sweep_lose':'被通吃了。人生总有起落，下次再来。'
+  }
+};
+
+// 修正林志玲口诀中的错别字 "tidi" → "tudi"
+KOUJUE_FUNNY.linzhiling['tidi>qigan'] = KOUJUE_FUNNY.linzhiling['tudi>qigan'];
+
+function speak(text,overrideStyle){
+  if(!speechReady||!soundEnabled)return;
+  window.speechSynthesis.cancel();
+  const style=VOICE_STYLES[overrideStyle||currentVoiceStyle]||VOICE_STYLES.default;
+  const u=new SpeechSynthesisUtterance(style.prefix+text+style.suffix);
+  u.lang='zh-CN';
+  u.rate=style.rate;
+  u.pitch=style.pitch;
+  u.volume=0.9;
+  const voices=window.speechSynthesis.getVoices();
+  let targetVoice=null;
+  if(style.pitch>1.4){
+    targetVoice=voices.find(v=>v.lang.startsWith('zh')&&v.name.toLowerCase().includes('female'));
+    targetVoice=targetVoice||voices.find(v=>v.lang.startsWith('zh')&&v.name.includes('女'));
+  }else if(style.pitch<0.8){
+    targetVoice=voices.find(v=>v.lang.startsWith('zh')&&v.name.toLowerCase().includes('male'));
+    targetVoice=targetVoice||voices.find(v=>v.lang.startsWith('zh')&&v.name.includes('男'));
+  }
+  if(!targetVoice)targetVoice=voices.find(v=>v.lang.startsWith('zh'));
+  if(targetVoice)u.voice=targetVoice;
+  window.speechSynthesis.speak(u);
+}
+
+function speakKoujue(winnerRole,loserRole,isSameRole){
+  const key=isSameRole?'same_rank':`${winnerRole}>${loserRole}`;
+  const style=currentVoiceStyle;
+  const text=(KOUJUE_FUNNY[style]&&KOUJUE_FUNNY[style][key])||(KOUJUE_FUNNY.default[key])||`${R_NAMES[winnerRole]}克制${R_NAMES[loserRole]}`;
+  speak(text);
+  return text;
+}
+
+// 通吃专用播报
+function speakSweep(isWin){
+  const key=isWin?'sweep_win':'sweep_lose';
+  const style=currentVoiceStyle;
+  const text=(KOUJUE_FUNNY[style]&&KOUJUE_FUNNY[style][key])||(KOUJUE_FUNNY.default[key])||(isWin?'哇，通吃了！':'操，被通吃啦！');
+  speak(text);
+  return text;
+}
+
+if(speechReady){
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+}
+
+/* ========== 音频系统 ========== */
+let audioCtx=null;
+let soundEnabled=true;
+let bgmGain=null;
+let bgmPlaying=false;
+let bgmTimer=null;
+
+function initAudio(){
+  if(audioCtx)return;
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  bgmGain=audioCtx.createGain();
+  bgmGain.gain.value=0.08;
+  bgmGain.connect(audioCtx.destination);
+}
+
+function toggleSound(){
+  soundEnabled=!soundEnabled;
+  const btn1=document.getElementById('sound-toggle');
+  const btn2=document.getElementById('sound-toggle-game');
+  const icon=soundEnabled?'🔊':'🔇';
+  if(btn1)btn1.textContent=icon;
+  if(btn2)btn2.textContent=icon;
+  if(btn1)btn1.classList.toggle('muted',!soundEnabled);
+  if(btn2)btn2.classList.toggle('muted',!soundEnabled);
+  if(!soundEnabled){stopBGM();window.speechSynthesis?.cancel()}
+  else if(G.phase==='playing'||G.phase==='idle'||G.phase==='waiting_reveal')startBGM();
+}
+
+function playTone(freq,dur,type='sine',vol=0.15,delay=0){
+  if(!audioCtx||!soundEnabled)return;
+  const t=audioCtx.currentTime+delay;
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.type=type;osc.frequency.value=freq;
+  gain.gain.setValueAtTime(0,t);
+  gain.gain.linearRampToValueAtTime(vol,t+0.02);
+  gain.gain.linearRampToValueAtTime(0,t+dur);
+  osc.connect(gain);gain.connect(audioCtx.destination);
+  osc.start(t);osc.stop(t+dur);
+}
+
+function playTickSound(){playTone(880,0.08,'sine',0.18)}
+function playUrgentTick(){playTone(1100,0.1,'square',0.13)}
+function playCardSound(){playTone(600,0.08,'sine',0.12);playTone(800,0.08,'sine',0.08,0.04)}
+function playRevealSound(){playTone(440,0.15,'sine',0.18);playTone(660,0.15,'sine',0.12,0.1);playTone(880,0.2,'sine',0.08,0.2)}
+function playWinCardSound(){playTone(523,0.12,'sine',0.18);playTone(659,0.12,'sine',0.14,0.1);playTone(784,0.15,'sine',0.12,0.2);playTone(1047,0.2,'sine',0.1,0.3)}
+function playEliminateSound(){playTone(440,0.3,'sawtooth',0.12);playTone(330,0.3,'sawtooth',0.1,0.2);playTone(220,0.4,'sawtooth',0.08,0.4)}
+function playKoujueSound(){playTone(880,0.1,'sine',0.12);playTone(1100,0.15,'sine',0.1,0.08)}
+
+function playVictorySound(){
+  const notes=[523,659,784,1047,784,1047,1319];
+  notes.forEach((n,i)=>playTone(n,0.25,'sine',0.18,i*0.2));
+  speak('恭喜你赢了！太厉害了！');
+}
+function playDefeatSound(){
+  playTone(440,0.4,'sawtooth',0.12);playTone(370,0.4,'sawtooth',0.1,0.3);
+  playTone(311,0.5,'sawtooth',0.08,0.6);playTone(261,0.6,'sawtooth',0.06,0.9);
+  speak('你输了，下次再战吧！');
+}
+
+// ===== 高级背景音乐 - 古风策略风格 =====
+// 使用更丰富的和声与节奏变化，模拟古筝+笛子的合奏感
+const BGM_PHRASES=[
+  // Phrase A - 主旋律（类似古筝拨奏）
+  {notes:[262,330,392,330,262,294,330,392,440,392,330,294], dur:500, vol:0.045},
+  // Phrase B - 过渡段
+  {notes:[330,392,440,392,330,294,262,294,330,392,330,262], dur:500, vol:0.04},
+  // Phrase C - 高音装饰
+  {notes:[523,440,392,440,523,587,523,440,392,440,392,330], dur:480, vol:0.035},
+  // Phrase D - 低音铺垫
+  {notes:[196,220,262,220,196,175,165,175,196,220,196,175], dur:520, vol:0.04},
+  // Phrase E - 回归主旋律变奏
+  {notes:[294,330,392,330,294,262,330,392,440,392,330,294], dur:500, vol:0.04},
+];
+
+let bgmPhraseIdx=0;
+let bgmNoteIdx=0;
+
+function startBGM(){if(!audioCtx||!soundEnabled||bgmPlaying)return;bgmPlaying=true;bgmPhraseIdx=0;bgmNoteIdx=0;playBGMLoop()}
+function playBGMLoop(){
+  if(!bgmPlaying||!soundEnabled)return;
+  const phrase=BGM_PHRASES[bgmPhraseIdx%BGM_PHRASES.length];
+  const note=phrase.notes[bgmNoteIdx%phrase.notes.length];
+  
+  // 主音
+  playBGMRNote(note,phrase.dur/1000,phrase.vol);
+  // 加一个低八度泛音增加厚度
+  playBGMRNote(note/2,phrase.dur/1000*1.2,phrase.vol*0.4);
+  // 偶尔加一个高八度装饰音（每4个音符一次）
+  if(bgmNoteIdx%4===0 && note<800){
+    playBGMRNote(note*2,(phrase.dur/1000)*0.3,phrase.vol*0.2, phrase.dur/1000*0.15);
+  }
+
+  bgmNoteIdx++;
+  if(bgmNoteIdx>=phrase.notes.length){
+    bgmNoteIdx=0;
+    bgmPhraseIdx++;
+    // 每2个乐句后加一个稍长的停顿
+    if(bgmPhraseIdx%2===0){
+      bgmTimer=setTimeout(playBGMLoop,phrase.dur+200);
+    }else{
+      bgmTimer=setTimeout(playBGMLoop,phrase.dur-50);
+    }
+  }else{
+    bgmTimer=setTimeout(playBGMLoop,phrase.dur-30);
+  }
+}
+
+function playBGMRNote(freq,dur,vol,delay){
+  if(!audioCtx||!soundEnabled)return;
+  const t=audioCtx.currentTime+(delay||0);
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  // 使用 triangle 波形模拟古筝/管乐的温暖音色
+  osc.type='triangle';osc.frequency.value=freq;
+  gain.gain.setValueAtTime(0,t);
+  gain.gain.linearRampToValueAtTime(vol,t+0.05);
+  gain.gain.setValueAtTime(vol*0.7,t+dur*0.5);
+  gain.gain.linearRampToValueAtTime(vol*0.3,t+dur*0.75);
+  gain.gain.linearRampToValueAtTime(0,t+dur);
+  osc.connect(gain);gain.connect(bgmGain);
+  osc.start(t);osc.stop(t+dur+0.05);
+}
+function stopBGM(){bgmPlaying=false;if(bgmTimer){clearTimeout(bgmTimer);bgmTimer=null}}
+function pauseBGM(){bgmPlaying=false;if(bgmTimer){clearTimeout(bgmTimer);bgmTimer=null}}
+
+/* ========== 数据定义 ========== */
+const ROLES=['tudi','ji','qigan','huanglang','chong'];
+const R_NAMES={tudi:'土地',ji:'鸡',qigan:'旗杆',huanglang:'黄狼',chong:'虫'};
+const R_ICONS={tudi:'🏔',ji:'🐔',qigan:'🚩',huanglang:'🐺',chong:'🐛'};
+const R_COLORS={tudi:'#f0b232',ji:'#e74c3c',qigan:'#3498db',huanglang:'#9b59b6',chong:'#2ecc71'};
+const RANKS=['xiao','zhong','da','lao']; // 费用顺序：小=1费, 中=2费, 大=3费, 老=4费
+const K_NAMES={lao:'老',da:'大',zhong:'中',xiao:'小'};
+const K_SYM={lao:'★',da:'◆',zhong:'●',xiao:'·'};
+const K_VAL={lao:4,da:3,zhong:2,xiao:1};
+// 费用映射（用于TFT风格）
+const COST_MAP={xiao:1,zhong:2,da:3,lao:4};
+const K_CLS={lao:'cost-4',da:'cost-3',zhong:'cost-2',xiao:'cost-1'}; // TFT费用class
+// 等级颜色
+const K_COLORS={lao:'#ff8c00',da:'#9b59b6',zhong:'#3498db',xiao:'#2ecc71'};
+
+// 相克关系
+const COUNTERS={chong:['qigan','tudi','huanglang'],qigan:['huanglang','ji'],huanglang:['ji','tudi'],ji:['chong','tudi'],tudi:['qigan']};
+
+// 口诀显示文本
+const KOUJUE_DISPLAY={
+  'chong>huanglang':'🐛 虫蛀黄狼皮！','chong>tudi':'🐛 虫蛀老土地！','chong>qigan':'🐛 虫蛀旗杆脚！',
+  'tudi>qigan':'🏔 土地面前不能插旗杆！','qigan>huanglang':'🚩 挥着旗杆打黄狼！','qigan>ji':'🚩 挥着旗杆打母鸡！',
+  'ji>chong':'🐔 鸡吃虫！','ji>tudi':'🐔 鸡啄老土地！','huanglang>ji':'🐺 黄狼吃鸡！','huanglang>tudi':'🐺 黄狼放屁熏死老土地！'
+};
+
+// 角色描述文案（用于卡牌）
+const R_DESCS={
+  tudi:'千沟万壑 · 厚重如山',
+  ji:'昂首啼鸣 · 啄食天下',
+  qigan:'猎猎作威 · 一扫千军',
+  huanglang:'狡诈凶猛 · 放屁绝杀',
+  chong:'以小博大 · 无孔不入'
+};
+
+function isCounter(a,d){return COUNTERS[a]&&COUNTERS[a].includes(d)}
+
+// 核心判定：a对b的结果 >0=a赢 <0=b赢 0=平局
+function compareCards(a,b){
+  if(a.role===b.role){
+    const d=K_VAL[a.rank]-K_VAL[b.rank];
+    return d>0?1:d<0?-1:0;
+  }
+  if(isCounter(a.role,b.role))return 1;
+  if(isCounter(b.role,a.role))return-1;
+  return 0;
+}
+
+// 获取口诀显示文本
+function getKoujueDisplay(w,l){
+  if(w.role===l.role)return`${K_SYM[w.rank]}${K_NAMES[w.rank]}${R_NAMES[w.role]}吃${K_NAMES[l.rank]}${R_NAMES[l.role]}！`;
+  return KOUJUE_DISPLAY[`${w.role}>${l.role}`]||`${R_NAMES[w.role]}克制${R_NAMES[l.role]}！`;
+}
+
+// 创建牌组：5角色 × 4等级 = 20张唯一牌
+function createDeck(){
+  const deck=[];
+  for(const r of ROLES)for(const k of RANKS)deck.push({role:r,rank:k,id:r+'_'+k});
+  return deck;
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ========== 游戏状态 ========== */
+let G={playerCount:2,players:[],round:0,phase:'idle',timer:30,timerInterval:null,waitTimer:null,selectedIdx:-1,playedCards:{},logs:[],matchTimer:60,matchInterval:null,totalCards:20};
+
+/* ========== 投降 ========== */
+function confirmSurrender(){
+  document.getElementById('surrender-confirm').style.display='flex';
+}
+function doSurrender(){
+  document.getElementById('surrender-confirm').style.display='none';
+  G.players[0].eliminated=true;
+  addLog('🏳️ 你投降了！','lose');
+  const alive=G.players.filter(p=>!p.eliminated);
+  if(alive.length>0)endGame(alive[0]);
+  else endGame(null);
+}
+
+/* ========== 匹配 ========== */
+function startMatch(n){
+  initAudio();G.playerCount=n;
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('match-screen').style.display='flex';
+  const mp=document.getElementById('match-players');mp.innerHTML='';
+  for(let i=0;i<n;i++){const s=document.createElement('div');s.className='match-slot';s.id='ms-'+i;s.textContent='?';mp.appendChild(s)}
+  G.matchTimer=60;document.getElementById('match-timer').textContent=G.matchTimer;
+  setTimeout(()=>{const s=document.getElementById('ms-0');s.innerHTML=myAvatarType==='url'?`<img src="${myAvatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:`<span style="font-size:30px">${myAvatar}</span>`;s.classList.add('filled')},400);
+  let filled=1;
+  const fi=setInterval(()=>{
+    if(filled>=n){clearInterval(fi);return}
+    const s=document.getElementById('ms-'+filled);s.textContent='🤖';s.classList.add('filled','ai');filled++;playTone(660,0.1,'sine',0.08)
+  },700+Math.random()*500);
+  G.matchInterval=setInterval(()=>{
+    G.matchTimer--;document.getElementById('match-timer').textContent=G.matchTimer;
+    if(G.matchTimer<=0||filled>=n){
+      clearInterval(G.matchInterval);
+      for(let i=0;i<n;i++){const s=document.getElementById('ms-'+i);if(!s.classList.contains('filled')){s.textContent='🤖';s.classList.add('filled','ai')}}
+      setTimeout(initGame,500)
+    }
+  },1000);
+  const ci=setInterval(()=>{if(filled>=n){clearInterval(ci);setTimeout(()=>{clearInterval(G.matchInterval);initGame()},600)}},200);
+}
+function cancelMatch(){clearInterval(G.matchInterval);document.getElementById('match-screen').style.display='none';document.getElementById('start-screen').style.display='flex';stopBGM()}
+
+/* ========== 初始化游戏 ========== */
+function initGame(){
+  document.getElementById('match-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  G.players=[{id:0,name:'你',emoji:myAvatar,isAI:false,hand:[],eliminated:false,avatarType:myAvatarType,avatarUrl:myAvatarUrl}];
+  const aiData=[
+    {name:'左慈',emoji:'🧙'},
+    {name:'华佗',emoji:'👨‍⚕️'},
+    {name:'扁鹊',emoji:'🦊'},
+    {name:'孙思邈',emoji:'🐼'}
+  ];
+  for(let i=1;i<G.playerCount;i++){
+    const ai=aiData[i-1]||{name:'AI'+i,emoji:'🤖'};
+    G.players.push({id:i,name:ai.name,emoji:ai.emoji,isAI:true,hand:[],eliminated:false,avatarType:'emoji',avatarUrl:''});
+  }
+  // 发牌：20张唯一牌均匀分发
+  const deck=shuffle(createDeck());
+  let ci=0;
+  for(const c of deck){G.players[ci%G.playerCount].hand.push({...c});ci++}
+  // 验证无重复：每张牌的id是唯一的(role_rank)，发牌时每人拿到的都是不同的牌
+  G.round=0;G.logs=[];G.phase='idle';G.playedCards={};G.selectedIdx=-1;pendingCard=null;
+  addLog('🎴 牌已发完，游戏开始！（共20张唯一牌）');addLog(`── 共${G.playerCount}人 ──`);
+  renderAll();initDragAndDrop();startRound();startBGM();
+  speak('游戏开始！');
+}
+
+/* ========== 回合 ========== */
+function startRound(){
+  G.round++;G.phase='playing';G.playedCards={};G.selectedIdx=-1;pendingCard=null;
+  for(const p of G.players)if(!p.eliminated&&p.hand.length===0){p.eliminated=true;addLog(`${p.emoji} ${p.name} 淘汰出局！`,'lose');playEliminateSound();speak(`${p.name}淘汰出局！`)}
+  // 每轮开始时校验全局牌id唯一性
+  const allIds=[];
+  G.players.forEach(p=>p.hand.forEach(c=>allIds.push(c.id)));
+  const dupAtStart=allIds.filter((id,idx)=>allIds.indexOf(id)!==idx);
+  if(dupAtStart.length>0){
+    console.error(`[BUG] 第${G.round}轮开始时发现重复牌:`,dupAtStart);
+    G.players.forEach(p=>{
+      const dups=p.hand.filter((c,idx)=>p.hand.findIndex(x=>x.id===c.id)!==idx);
+      if(dups.length>0)console.error(`  ${p.name}(${p.id})手中重复:`,dups.map(c=>c.id),'全部:',p.hand.map(c=>c.id));
+    });
+    addLog(`⚠️ 第${G.round}轮开始牌异常：${dupAtStart.join(',')}`,'lose');
+  }
+  const alive=G.players.filter(p=>!p.eliminated);
+  if(alive.length<=1){endGame(alive[0]);return}
+  for(const p of G.players)if(p.isAI&&!p.eliminated)setTimeout(()=>aiPlay(p),800+Math.random()*3500);
+  startTimer(30);renderAll();addLog(`── 第 ${G.round} 轮 ──`);
+}
+
+function startTimer(s){
+  clearInterval(G.timerInterval);clearTimeout(G.waitTimer);
+  G.timer=s;updateTimerUI();
+  G.timerInterval=setInterval(()=>{
+    G.timer--;updateTimerUI();
+    if(G.timer<=5&&G.timer>0)playUrgentTick();
+    else if(G.timer<=10&&G.timer>5)playTickSound();
+    if(G.timer<=0){clearInterval(G.timerInterval);autoPlayUnplayed()}
+  },1000);
+}
+
+function updateTimerUI(){
+  document.getElementById('timer-text').textContent=G.timer;
+  const bar=document.getElementById('timer-bar');
+  // 进度条根据当前倒计时总量计算（30秒出牌 或 5秒开牌等待）
+  const maxTime=G.timer<=5?5:30;
+  bar.style.width=(G.timer/maxTime*100)+'%';
+  bar.className='timer-progress-bar'+(G.timer<=5?' warning':'');
+
+  // 棋盘中央大号倒计时
+  const tt=document.getElementById('table-timer');
+  const tNum=document.getElementById('table-timer-num');
+  const tRing=document.getElementById('table-timer-ring');
+  tNum.textContent=G.timer;
+
+  // 根据阶段显示/隐藏中央倒计时
+  if(G.phase==='playing'||G.phase==='waiting_reveal'){
+    tt.classList.remove('hidden');
+  } else {
+    tt.classList.add('hidden');
+  }
+
+  // 根据剩余时间切换样式
+  tRing.classList.remove('warning','urgent');
+  if(G.timer<=5) tRing.classList.add('urgent');
+  else if(G.timer<=10) tRing.classList.add('warning');
+
+  // 标签文字：所有人出完→"开牌倒计时"，否则→"出牌倒计时"
+  const tLabel=tt.querySelector('.table-timer-label');
+  const allPlayed=G.players.filter(p=>!p.eliminated).every(p=>G.playedCards[p.id]!==undefined);
+  tLabel.textContent=allPlayed?'开牌倒计时':'出牌倒计时';
+}
+
+function checkAllPlayed(){
+  const alive=G.players.filter(p=>!p.eliminated);
+  // 如果有暂存牌且所有AI已出，自动确认
+  if(pendingCard){
+    const allOthersPlayed=alive.filter(x=>x.id!==0).every(x=>G.playedCards[x.id]!==undefined);
+    if(allOthersPlayed){commitPending();return}
+  }
+  if(alive.every(p=>G.playedCards[p.id]!==undefined)){
+    clearInterval(G.timerInterval);
+    // 所有人已出牌 → 锁定阶段，防止再出牌
+    G.phase='waiting_reveal';
+    G.timer=5;updateTimerUI();
+    addLog('✅ 所有人已出牌，5秒后开牌');
+    playTone(700,0.1,'sine',0.12);
+    // 5-4-3-2-1 倒计时逐秒递减
+    G.timerInterval=setInterval(()=>{
+      G.timer--;updateTimerUI();
+      if(G.timer<=5&&G.timer>0)playUrgentTick();
+      if(G.timer<=0){
+        clearInterval(G.timerInterval);
+        revealCards();
+      }
+    },1000);
+  }
+}
+
+function autoPlayUnplayed(){
+  // 防御：不在playing阶段不执行（避免在waiting_reveal阶段重复出牌）
+  if(G.phase!=='playing')return;
+  // 如果有暂存牌，先确认提交
+  if(pendingCard){
+    commitPending(); // commitPending会调用checkAllPlayed，可能触发revealCards
+    // 如果已经提交并进入等待开牌阶段，不需要再处理
+    if(G.phase!=='playing')return;
+  }
+  for(const p of G.players){
+    if(!p.eliminated&&G.playedCards[p.id]===undefined){
+      if(p.isAI)aiPlay(p);
+      else{const i=Math.floor(Math.random()*p.hand.length);G.playedCards[p.id]=p.hand.splice(i,1)[0];addLog('⏰ 超时，系统替你出牌')}
+    }
+  }
+  setTimeout(revealCards,300);
+}
+
+/* ========== 玩家出牌（拖拽为主，也支持点击选中后确认） ========== */
+function selectCard(i){
+  if(G.phase!=='playing')return;
+  // 防御：如果已经正式出牌了，不允许再选牌
+  if(G.playedCards[0]!==undefined)return;
+  // 如果已有暂存牌，点击另一张牌会替换出牌框中的牌
+  if(pendingCard){
+    const p=G.players[0];
+    if(i>=p.hand.length)return;
+    const oldCard=pendingCard.card;
+    const newCard=p.hand.splice(i,1)[0];
+    p.hand.push(oldCard); // 旧牌退回手牌
+    pendingCard.card=newCard;
+    G.selectedIdx=-1;
+    addLog(`🔄 换牌：将${R_ICONS[newCard.role]}${K_NAMES[newCard.rank]}${R_NAMES[newCard.role]}放入出牌框（目标：${G.players[pendingCard.targetPid].name}）`);
+    playCardSound();renderAll();return;
+  }
+  G.selectedIdx=i;
+  renderHand();
+  playTone(500,0.05,'sine',0.06)
+}
+// doPlayCard用于超时自动出牌等场景
+function doPlayCard(){
+  // 如果有暂存牌，先确认提交
+  if(pendingCard){commitPending();return}
+  if(G.selectedIdx<0||G.phase!=='playing')return;
+  // 防御：如果已经正式出牌了，不允许再出
+  if(G.playedCards[0]!==undefined)return;
+  const p=G.players[0];const c=p.hand.splice(G.selectedIdx,1)[0];
+  G.playedCards[0]=c;G.selectedIdx=-1;
+  addLog('✅ 你已出牌');playCardSound();renderAll();checkAllPlayed();
+}
+// 移除 doChangeCard - 不再需要换牌
+
+/* ========== AI出牌 ========== */
+function aiPlay(p){
+  if(p.eliminated||G.playedCards[p.id]!==undefined||G.phase!=='playing')return;
+  let bestIdx=0;
+  for(let i=1;i<p.hand.length;i++){
+    const a=p.hand[i],b=p.hand[bestIdx];
+    if(a.role==='chong'&&b.role!=='chong'){bestIdx=i;continue}
+    if(b.role==='chong'&&a.role!=='chong')continue;
+    if(K_VAL[a.rank]>K_VAL[b.rank])bestIdx=i;
+  }
+  if(Math.random()<0.3&&p.hand.length>1){
+    bestIdx=Math.floor(Math.random()*p.hand.length);
+  }
+  G.playedCards[p.id]=p.hand.splice(bestIdx,1)[0];
+  renderTable();checkAllPlayed();
+}
+
+/* ========== 开牌判定 - 两两比对 + 通吃检测 + 按玩家播报 ========== */
+function revealCards(){
+  if(G.phase==='revealing'||G.phase==='done')return;
+  G.phase='revealing';clearInterval(G.timerInterval);clearTimeout(G.waitTimer);
+  updateTimerUI(); // 隐藏中央倒计时
+  pauseBGM();addLog('═══ 开牌！═══');playRevealSound();
+
+  const entries=[];
+  for(const p of G.players)if(!p.eliminated&&G.playedCards[p.id])entries.push({pid:p.id,card:G.playedCards[p.id]});
+
+  // ====== 防御校验：entries中的牌ID必须全局唯一 ======
+  const seenIds=new Set();
+  for(const e of entries){
+    if(seenIds.has(e.card.id)){
+      console.error('[BUG-严重] revealCards中发现重复出牌ID:', e.card.id,
+        '属于玩家:', G.players[e.pid].name,
+        '所有出牌:', entries.map(x=>({name:G.players[x.pid].name, id:x.card.id})));
+      addLog(`⚠️ [BUG] 检测到重复出牌: ${e.card.id} (${R_NAMES[e.card.role]||''}${K_NAMES[e.card.rank]||''})`,'lose');
+    }
+    seenIds.add(e.card.id);
+  }
+
+  // ====== 防御校验：每张出牌不应存在于任何人的手牌中（出牌已从hand splice）=====
+  for(const e of entries){
+    for(const p of G.players){
+      if(p.hand.some(c=>c.id===e.card.id)){
+        console.error(`[BUG-严重] 出牌 ${e.card.id} 仍在 ${p.name} 的手牌中！`);
+        addLog(`⚠️ [BUG] 牌 ${e.card.id} 仍在手牌中`,'lose');
+        // 尝试从手牌中移除（修复数据一致性）
+        const idx=p.hand.findIndex(c=>c.id===e.card.id);
+        if(idx>=0){p.hand.splice(idx,1);console.log(`  已从${p.name}手牌中移除重复的${e.card.id}`)}
+      }
+    }
+  }
+
+  // 两两比对
+  const wins=[];const losses=[];
+  for(let i=0;i<entries.length;i++){wins[i]=[];losses[i]=[]}
+
+  for(let i=0;i<entries.length;i++){
+    for(let j=i+1;j<entries.length;j++){
+      const cmp=compareCards(entries[i].card,entries[j].card);
+      if(cmp>0){wins[i].push(j);losses[j].push(i)}
+      else if(cmp<0){wins[j].push(i);losses[i].push(j)}
+    }
+  }
+
+  // ====== 通吃检测 ======
+  // 3人及以上：赢了所有对手才算通吃；2人对战只报口诀，不叫通吃
+  const sweepers=[];
+  for(let i=0;i<entries.length;i++){
+    sweepers[i]=(entries.length>=3 && wins[i].length===entries.length-1);
+  }
+
+  // 收牌预计算（不执行收牌，只算出谁收谁）
+  // 关键修正：每张出牌只能被一个赢家收走，避免牌数膨胀
+  const collected={};
+  const myCardLost={};
+  entries.forEach(e=>{collected[e.pid]=[];myCardLost[e.pid]=false});
+
+  // 先收集每个输家被谁赢了
+  const loserWinners={}; // pid_j -> [{winnerIdx, winsCount}]
+  for(let i=0;i<entries.length;i++){
+    for(const j of wins[i]){
+      if(!loserWinners[j])loserWinners[j]=[];
+      loserWinners[j].push({winnerIdx:i, winsCount:wins[i].length});
+    }
+  }
+  // 每个输家的牌只归赢得最多的人；如果相同则归先出现的
+  // ★ 修复：优先选择有"直接克制关系"的赢家（如鸡吃虫），其次才按winsCount排序 ★
+  const cardOwner={}; // j -> winnerIdx
+  for(const j of Object.keys(loserWinners)){
+    const candidates=loserWinners[j];
+    const loserCard=entries[j].card;
+    // 按优先级排序：1.直接克制关系(优先) 2.winsCount(次之) 3.先出现(兜底)
+    candidates.sort((a,b)=>{
+      const aCard=entries[a.winnerIdx].card;
+      const bCard=entries[b.winnerIdx].card;
+      const aCounter=isCounter(aCard.role, loserCard.role)?1:0;
+      const bCounter=isCounter(bCard.role, loserCard.role)?1:0;
+      if(aCounter!==bCounter)return bCounter-aCounter; // 有克制关系的优先
+      return b.winsCount-a.winsCount; // 其次比胜场数
+    });
+    cardOwner[j]=candidates[0].winnerIdx;
+  }
+
+  // 建立收牌映射
+  for(let j=0;j<entries.length;j++){
+    if(cardOwner[j]!==undefined){
+      const i=cardOwner[j];
+      const pid_i=entries[i].pid;
+      const pid_j=entries[j].pid;
+      collected[pid_i].push(entries[j].card);
+      myCardLost[pid_j]=true;
+      addLog(`${G.players[pid_i].emoji}${G.players[pid_i].name} 的 ${R_ICONS[entries[i].card.role]}${K_NAMES[entries[i].card.rank]}${R_NAMES[entries[i].card.role]} 克制 ${G.players[pid_j].emoji}${G.players[pid_j].name} 的 ${R_ICONS[entries[j].card.role]}${K_NAMES[entries[j].card.rank]}${R_NAMES[entries[j].card.role]}`,'koujue');
+    }
+  }
+
+  // 调试：收牌前校验每张出牌只出现一次
+  const allCardsInEntries=entries.map(e=>e.card.id);
+  const dupEntries=allCardsInEntries.filter((id,idx)=>allCardsInEntries.indexOf(id)!==idx);
+  if(dupEntries.length>0){
+    console.error('[BUG] entries中有重复出牌:',dupEntries, entries.map(e=>({pid:e.pid,cardId:e.card.id})));
+  }
+  // 校验collected中每张牌只出现一次
+  const allCollectedIds=[];
+  for(const pid in collected){allCollectedIds.push(...collected[pid].map(c=>c.id))}
+  const dupCollected=allCollectedIds.filter((id,idx)=>allCollectedIds.indexOf(id)!==idx);
+  if(dupCollected.length>0){
+    console.error('[BUG] collected中有重复牌:',dupCollected);
+  }
+
+  // ====== 翻牌显示 ======
+  renderReveal(entries);
+
+  // ====== 播报口诀 ======
+  schedulePerPlayerNarration(entries, wins, losses, sweepers);
+
+  // ====== 延迟播放收牌动画 → 然后执行收牌 ======
+  const totalKoujueCount=countMyKoujues(wins, losses, sweepers, 0, entries);
+  const animDelay = totalKoujueCount>0 ? Math.max(1800, totalKoujueCount*1200+800) : 1400;
+
+  setTimeout(()=>{
+    // 播放收牌动画
+    playCollectAnimation(entries, wins, collected, myCardLost, sweepers, cardOwner, ()=>{
+      // 动画完成后执行收牌
+      executeCollect(entries, collected, myCardLost, sweepers);
+
+      // 判断需要等待多久再进入下一轮
+      const postDelay = totalKoujueCount>0 ? 800 : 600;
+      setTimeout(()=>{
+        const vi=document.querySelector('.voice-indicator');if(vi)vi.remove();
+        for(const p of G.players)if(!p.eliminated&&p.hand.length===0){p.eliminated=true;addLog(`${p.emoji} ${p.name} 淘汰出局！`,'lose');playEliminateSound();speak(`${p.name}淘汰出局！`)}
+        const alive=G.players.filter(p=>!p.eliminated);
+        if(alive.length<=1){endGame(alive[0]);return}
+        renderAll();startRound();startBGM();
+      },postDelay);
+    });
+  },animDelay);
+}
+
+/**
+ * 执行收牌逻辑（动画完成后调用）
+ * 核心规则：每张出牌只有一个归属（由collected映射保证）
+ * - 自己的出牌被赢走了 → 不收回，但赢来的牌仍归自己
+ * - 自己赢了别人且没人赢自己 → 收回自己的牌 + 收缴赢来的牌
+ * - 平局 → 收回自己的牌
+ */
+function executeCollect(entries, collected, myCardLost, sweepers){
+  // 辅助函数：检查某张牌是否已存在于任何人的手牌中（防重复）
+  function isCardInAnyHand(cardId){
+    for(const p of G.players){
+      if(p.hand.some(c=>c.id===cardId))return true;
+    }
+    return false;
+  }
+
+  // ★★★ 核心防御：用Set追踪本轮已分配的所有牌，从根本上防止重复 ★★★
+  const allocatedCardIds=new Set();
+
+  for(const e of entries){
+    const p=G.players[e.pid];
+    if(myCardLost[e.pid]){
+      // 我的出牌被别人赢走了 → 自己不能收回出牌，但赢来的牌仍归自己
+      for(const c of collected[e.pid]){
+        if(allocatedCardIds.has(c.id)){
+          console.error(`[BUG-防御-allocated] 牌 ${c.id} 已分配过，跳过 → ${p.name}`);
+          continue;
+        }
+        if(isCardInAnyHand(c.id)){
+          console.error(`[BUG-防御] 重复牌 ${c.id} → ${p.name}，跳过`);
+          continue;
+        }
+        allocatedCardIds.add(c.id);
+        p.hand.push(c);
+      }
+      if(collected[e.pid].length>0){
+        addLog(`${p.emoji}${p.name} 出牌被收走，但收缴了${collected[e.pid].length}张牌`,'win');
+      }else{
+        addLog(`${p.emoji}${p.name} 的牌被收走！手牌-1`,'lose');
+      }
+    }else if(collected[e.pid].length>0){
+      // 我赢了别人且没人赢我 → 收回自己的牌 + 收缴赢来的牌
+      if(!isCardInAnyHand(e.card.id)&&!allocatedCardIds.has(e.card.id)){
+        allocatedCardIds.add(e.card.id);
+        p.hand.push(e.card);
+      }else{console.error(`[BUG-防御] 重复出牌 ${e.card.id} → ${p.name}，跳过`)}
+      for(const c of collected[e.pid]){
+        if(allocatedCardIds.has(c.id)){
+          console.error(`[BUG-防御-allocated] 牌 ${c.id} 已分配过，跳过 → ${p.name}`);
+          continue;
+        }
+        if(isCardInAnyHand(c.id)){
+          console.error(`[BUG-防御] 重复牌 ${c.id} → ${p.name}，跳过`);
+          continue;
+        }
+        allocatedCardIds.add(c.id);
+        p.hand.push(c);
+      }
+      const isSweeper=sweepers[entries.indexOf(e)];
+      addLog(`${p.emoji}${p.name} 收走 ${collected[e.pid].length} 张牌！${isSweeper?' 🔥通吃！':''}`,isSweeper?'koujue':'win');
+    }else{
+      // 平局 → 收回自己的牌
+      if(!isCardInAnyHand(e.card.id)&&!allocatedCardIds.has(e.card.id)){
+        allocatedCardIds.add(e.card.id);
+        p.hand.push(e.card);
+      }else{console.error(`[BUG-防御] 重复平局牌 ${e.card.id} → ${p.name}，跳过`)}
+      addLog(`${p.emoji}${p.name} 的 ${R_ICONS[e.card.role]}${K_NAMES[e.card.rank]}${R_NAMES[e.card.role]} 平局收回`);
+    }
+  }
+
+  // 校验所有出牌都已正确分配（每张出牌要么被收回手牌，要么在collected中给了赢家）
+  for(const e of entries){
+    if(!allocatedCardIds.has(e.card.id) && !myCardLost[e.pid]){
+      // 这种情况不应该发生——非输家的牌应该已经被分配了
+      console.error(`[BUG-防御-遗漏] 牌 ${e.card.id} (${G.players[e.pid].name}) 未被任何分支分配！尝试补回收...`);
+      const p=G.players[e.pid];
+      if(!isCardInAnyHand(e.card.id)){
+        p.hand.push(e.card);
+        addLog(`⚠️ 补回收 ${p.emoji}${p.name} 的牌`,'lose');
+      }
+    }
+  }
+  // 全局牌数校验
+  const totalCardsInPlay=G.players.reduce((sum,p)=>sum+p.hand.length,0);
+  if(totalCardsInPlay!==20){
+    addLog(`⚠️ 牌数异常：当前共${totalCardsInPlay}张（应为20张）`,'lose');
+    console.error('[BUG] 牌数异常:',totalCardsInPlay,'各玩家手牌:',G.players.map(p=>p.name+':'+p.hand.length));
+    const cardOwnerMap={};
+    G.players.forEach(p=>p.hand.forEach(c=>{
+      if(!cardOwnerMap[c.id])cardOwnerMap[c.id]=[];
+      cardOwnerMap[c.id].push(p.name);
+    }));
+    const dupIds=Object.entries(cardOwnerMap).filter(([_,owners])=>owners.length>1);
+    if(dupIds.length>0){
+      console.error('[BUG] 重复牌详情:',dupIds);
+      dupIds.forEach(([id,owners])=>addLog(`  重复: ${id} 在 ${owners.join('和')} 手中`,'lose'));
+    }
+    const missingIds=[];
+    for(const r of ROLES)for(const k of RANKS){
+      const id=r+'_'+k;
+      if(!cardOwnerMap[id])missingIds.push(id);
+    }
+    if(missingIds.length>0){
+      console.error('[BUG] 丢失的牌:',missingIds);
+      addLog(`  丢失的牌: ${missingIds.join(', ')}`,'lose');
+    }
+  }
+}
+
+/**
+ * 播放收牌动画（聚拢版）
+ * 输家的牌向赢家的头像位置飞去聚拢，约1秒完成
+ * cardOwner: {loserIdx -> winnerIdx} 每张输家的牌归哪个赢家
+ */
+function playCollectAnimation(entries, wins, collected, myCardLost, sweepers, cardOwner, onComplete){
+  // 收集所有输家pid（牌被收走的人）
+  const loserPids=new Set();
+  for(const e of entries){
+    if(myCardLost[e.pid])loserPids.add(e.pid);
+  }
+
+  if(loserPids.size===0){
+    onComplete();
+    return;
+  }
+
+  // 收牌音效
+  playTone(660,0.08,'sine',0.12);
+
+  const tableArea=document.getElementById('table-area');
+  const areaRect=tableArea.getBoundingClientRect();
+
+  // 计算每个赢家头像的屏幕坐标（在table-area坐标系内）
+  // 头像位置：cx+rx*cos(ang), cy+ry*sin(ang)，与renderSeats一致
+  const alive=G.players.filter(p=>!p.eliminated);
+  const total=alive.length;
+  const cx=360,cy=360,rx=300,ry=300;
+
+  const myPlayer=alive.find(p=>p.id===0);
+  const opponents=alive.filter(p=>p.id!==0);
+  const oppCount=opponents.length;
+
+  function clockAngle(hour){ return hour*Math.PI/6 - Math.PI/2; }
+  function getOpponentAngle(i, count){
+    if(count===1) return clockAngle(12);
+    if(count===2) return i===0 ? clockAngle(10) : clockAngle(2);
+    if(count===3) return [12,9,3].map(clockAngle)[i];
+    if(count===4){
+      const myAng=clockAngle(6);
+      const step=2*Math.PI/5;
+      return myAng+(i+1)*step;
+    }
+    const step=2*Math.PI/(count+1);
+    const myAng=clockAngle(6);
+    return myAng+(i+1)*step;
+  }
+
+  // 建立pid→角度映射
+  const pidAngleMap={};
+  pidAngleMap[0]=clockAngle(6);
+  opponents.forEach((opp,i)=>{ pidAngleMap[opp.id]=getOpponentAngle(i,oppCount); });
+
+  // 建立pid→头像中心坐标（table-area坐标系）
+  const pidAvatarPos={};
+  for(const e of entries){
+    const ang=pidAngleMap[e.pid];
+    if(ang!==undefined){
+      pidAvatarPos[e.pid]={
+        x: cx+rx*Math.cos(ang),
+        y: cy+ry*Math.sin(ang)
+      };
+    }
+  }
+
+  // 为每张输家的牌创建飞行克隆元素
+  const flyingClones=[];
+
+  for(let j=0;j<entries.length;j++){
+    if(cardOwner[j]===undefined) continue; // 没被赢走，跳过
+    const loserPid=entries[j].pid;
+    const winnerIdx=cardOwner[j];
+    const winnerPid=entries[winnerIdx].pid;
+
+    // 获取输家出牌框位置
+    const loserSlot=document.getElementById(`play-slot-${loserPid}`);
+    if(!loserSlot) continue;
+
+    // 获取赢家头像位置
+    const winAvatarPos=pidAvatarPos[winnerPid];
+    if(!winAvatarPos) continue;
+
+    // 克隆出牌框中的卡牌元素
+    const cardEl=loserSlot.querySelector('.reveal-card') || loserSlot.querySelector('.face-down-card') || loserSlot.firstElementChild;
+    if(!cardEl) continue;
+
+    // 创建飞行克隆
+    const clone=cardEl.cloneNode(true);
+    clone.className='gather-fly-card';
+    clone.style.cssText=`
+      position:absolute;
+      z-index:100;
+      pointer-events:none;
+      width:72px;height:98px;
+    `;
+
+    // 计算起始位置（出牌框中心，转为table-area坐标）
+    const slotRect=loserSlot.getBoundingClientRect();
+    const startX=slotRect.left+slotRect.width/2-areaRect.left;
+    const startY=slotRect.top+slotRect.height/2-areaRect.top;
+
+    // 用left/top定位（偏移半个卡牌尺寸实现居中）
+    clone.style.left=`${startX-36}px`;
+    clone.style.top=`${startY-49}px`;
+
+    tableArea.appendChild(clone);
+    flyingClones.push(clone);
+
+    // 目标位置（赢家头像中心，table-area坐标）
+    const endX=winAvatarPos.x;
+    const endY=winAvatarPos.y;
+
+    // 用Web Animations API做平滑聚拢动画
+    const dx=endX-startX;
+    const dy=endY-startY;
+
+    clone.animate([
+      { left:`${startX-36}px`, top:`${startY-49}px`, transform:'scale(1)', opacity:1 },
+      { left:`${startX+dx*0.5-36}px`, top:`${startY+dy*0.5-49}px`, transform:'scale(0.85)', opacity:0.7, offset:0.4 },
+      { left:`${endX-36}px`, top:`${endY-49}px`, transform:'scale(0.3)', opacity:0 }
+    ],{
+      duration:900,
+      easing:'cubic-bezier(0.25,0.46,0.45,0.94)',
+      fill:'forwards'
+    });
+  }
+
+  // 赢家头像闪光
+  for(const e of entries){
+    if(collected[e.pid].length>0 && !myCardLost[e.pid]){
+      const avatarPos=pidAvatarPos[e.pid];
+      if(!avatarPos) continue;
+      // 创建一个短暂的光环效果在赢家头像位置
+      const glow=document.createElement('div');
+      glow.className='gather-winner-glow';
+      glow.style.cssText=`
+        position:absolute;z-index:99;pointer-events:none;
+        width:60px;height:60px;border-radius:50%;
+        left:${avatarPos.x}px;top:${avatarPos.y}px;
+        transform:translate(-50%,-50%);
+      `;
+      tableArea.appendChild(glow);
+      glow.animate([
+        { boxShadow:'0 0 0 rgba(240,178,50,0)', transform:'translate(-50%,-50%) scale(0.5)', offset:0 },
+        { boxShadow:'0 0 30px rgba(240,178,50,0.7), 0 0 60px rgba(240,178,50,0.3)', transform:'translate(-50%,-50%) scale(1.2)', offset:0.5 },
+        { boxShadow:'0 0 0 rgba(240,178,50,0)', transform:'translate(-50%,-50%) scale(1)', offset:1 }
+      ],{
+        duration:700,
+        delay:400,
+        easing:'ease-out',
+        fill:'forwards'
+      });
+      setTimeout(()=>glow.remove(),1200);
+    }
+  }
+
+  // 输家出牌框中的卡牌同时淡出
+  loserPids.forEach(pid=>{
+    const slot=document.getElementById(`play-slot-${pid}`);
+    if(slot){
+      const cardEl=slot.querySelector('.reveal-card') || slot.querySelector('.face-down-card') || slot.firstElementChild;
+      if(cardEl){
+        cardEl.animate([
+          { opacity:1, transform:'scale(1)' },
+          { opacity:0, transform:'scale(0.6)' }
+        ],{
+          duration:400,
+          easing:'ease-in',
+          fill:'forwards'
+        });
+      }
+    }
+  });
+
+  // 动画完成后清理
+  setTimeout(()=>{
+    flyingClones.forEach(c=>c.remove());
+    onComplete();
+  },1000);
+}
+
+/**
+ * 单张卡牌飞行动画
+ * 从fromSlot的位置飞到toSlot的位置
+ */
+
+/**
+ * 计算某个玩家视角的口诀数量（用于确定延迟时间）
+ * 对于玩家(myPid)，统计：
+ * - 如果通吃：1条通吃口诀
+ * - 如果被通吃：1条被通吃口诀
+ * - 否则：每个赢/输关系各1条
+ */
+function countMyKoujues(wins, losses, sweepers, myPid, entries){
+  // 找到myPid在entries中的索引
+  let myIdx=-1;
+  for(let i=0;i<entries.length;i++){if(entries[i].pid===myPid){myIdx=i;break}}
+  if(myIdx<0)return 0;
+  if(sweepers[myIdx])return 1; // 通吃只有1条
+  // 如果有人通吃且我不是那个通吃者，检查是否被通吃
+  for(let i=0;i<entries.length;i++){
+    if(sweepers[i] && i!==myIdx && losses[myIdx].includes(i)){
+      return 1; // 被通吃只有1条
+    }
+  }
+  // 否则返回自己参与的胜负关系数
+  return wins[myIdx].length + losses[myIdx].length;
+}
+
+/**
+ * 核心功能：按玩家视角调度语音播报
+ * 玩家(pid=0)只能听到与自己相关的口诀
+ */
+function schedulePerPlayerNarration(entries, wins, losses, sweepers){
+  // 找到玩家0在entries中的位置
+  let myIdx=-1;
+  for(let i=0;i<entries.length;i++){if(entries[i].pid===0){myIdx=i;break}}
+
+  if(myIdx<0){
+    // 玩家已淘汰，播报存活玩家之间的口诀摘要
+    const koujueList=[];
+    for(let i=0;i<entries.length;i++){
+      for(const j of wins[i]){
+        if(i<j)continue; // 避免重复，只取i>j的对
+        const displayText=getKoujueDisplay(entries[i].card, entries[j].card);
+        koujueList.push({displayText, wc:entries[i].card, lc:entries[j].card});
+      }
+    }
+    if(koujueList.length>0){
+      playKoujueSound();showVoiceIndicator();
+      koujueList.forEach((k,idx)=>{
+        setTimeout(()=>{
+          speakKoujue(k.wc.role, k.lc.role, k.wc.role===k.lc.role);
+          if(idx===0)showKoujue(k.displayText);
+        }, idx*2000);
+      });
+    }else{
+      speak('这一轮平局！');
+    }
+    return;
+  }
+
+  const myEntry=entries[myIdx];
+  let delayOffset=0;
+
+  // ---- 情况1：玩家通吃所有人 ----
+  if(sweepers[myIdx]){
+    playWinCardSound();playKoujueSound();
+    const text=speakSweep(true);
+    showSweepPopup(true, text);
+    showVoiceIndicator();
+    return;
+  }
+
+  // ---- 情况2：被其他人通吃 ----
+  for(let i=0;i<entries.length;i++){
+    if(sweepers[i] && losses[myIdx].includes(i)){
+      // 我被entries[i]通吃了
+      const sweeperEntry=entries[i];
+      const text=speakSweep(false);
+      showSweepPopup(false, text);
+      playEliminateSound();
+      showVoiceIndicator();
+      return;
+    }
+  }
+
+  // ---- 情况3：正常两两比对 - 只播报与我相关的口诀 ----
+  const myKoujueList=[];
+  // 我赢的人
+  for(const j of wins[myIdx]){
+    const loserEntry=entries[j];
+    const displayText=getKoujueDisplay(myEntry.card, loserEntry.card);
+    myKoujueList.push({
+      type:'win',
+      displayText,
+      wc:myEntry.card,
+      lc:loserEntry.card
+    });
+  }
+  // 我输的人
+  for(const j of losses[myIdx]){
+    const winnerEntry=entries[j];
+    const displayText=getKoujueDisplay(winnerEntry.card, myEntry.card);
+    myKoujueList.push({
+      type:'lose',
+      displayText,
+      wc:winnerEntry.card,
+      lc:myEntry.card
+    });
+  }
+
+  if(myKoujueList.length>0){
+    playWinCardSound();playKoujueSound();
+    showVoiceIndicator();
+
+    // 显示第一个口诀弹出
+    showKoujue(myKoujueList[0].displayText);
+
+    // 依次播报
+    myKoujueList.forEach((k,idx)=>{
+      setTimeout(()=>{
+        const spokenText=speakKoujue(k.wc.role, k.lc.role, k.wc.role===k.lc.role);
+        if(idx>0)showKoujue(k.displayText);
+      }, idx*2000);
+    });
+  } else {
+    // 完全平局（不太可能发生在多人对战中）
+    speak('这一轮平局！');
+  }
+}
+
+/* ========== 游戏结束 ========== */
+function endGame(winner){
+  G.phase='done';clearInterval(G.timerInterval);clearTimeout(G.waitTimer);stopBGM();updateTimerUI();
+  if(!winner)winner=G.players[0];
+  const isMe=winner.id===0;
+  if(isMe)playVictorySound();else playDefeatSound();
+  const ov=document.createElement('div');ov.className='victory-overlay';
+  ov.innerHTML=`<div class="victory-title ${isMe?'':'lose-title'}">${isMe?'🏆 你赢了！':'💀 '+winner.emoji+' '+winner.name+' 获胜！'}</div><div class="victory-subtitle">经过 ${G.round} 轮对战</div><div class="victory-btns"><button class="action-btn btn-play" onclick="location.reload()">再来一局</button><button class="action-btn btn-change" onclick="backToStart()">返回大厅</button></div>`;
+  document.body.appendChild(ov);
+}
+function backToStart(){
+  document.getElementById('game-screen').style.display='none';document.getElementById('start-screen').style.display='flex';
+  const ov=document.querySelector('.victory-overlay');if(ov)ov.remove();stopBGM();window.speechSynthesis?.cancel();
+}
+
+/* ========== 渲染 - TFT卡牌系统 ========== */
+
+function getCharacterArtHTML(role){
+  switch(role){
+    case 'chong':
+      return `<div class="art-chong">
+        <div class="art-chong-head"></div>
+        <div class="art-chong-eye left"></div><div class="art-chong-eye right"></div>
+        <div class="art-chong-body"></div>
+        <div class="art-chong-seg"></div><div class="art-chong-seg s2"></div><div class="art-chong-seg s3"></div>
+        <div class="art-chong-tail"></div>
+      </div>`;
+    case 'ji':
+      return `<div class="art-ji">
+        <div class="art-ji-comb"></div>
+        <div class="art-ji-head"></div>
+        <div class="art-ji-eye left"></div><div class="art-ji-eye right"></div>
+        <div class="art-ji-beak"></div>
+        <div class="art-ji-body"></div>
+        <div class="art-ji-wing"></div>
+        <div class="art-ji-tail">
+          <div class="art-ji-feather"></div><div class="art-ji-feather"></div>
+          <div class="art-ji-feather"></div><div class="art-ji-feather"></div>
+        </div>
+        <div class="art-ji-leg l1"></div><div class="art-ji-leg l2"></div>
+      </div>`;
+    case 'qigan':
+      return `<div class="art-qigan">
+        <div class="art-qigan-top"></div>
+        <div class="art-qigan-flag"></div>
+        <div class="art-qigan-pole"></div>
+        <div class="art-qigan-base"></div>
+      </div>`;
+    case 'huanglang':
+      return `<div class="art-huanglang">
+        <div class="art-hl-ear left"></div><div class="art-hl-ear right"></div>
+        <div class="art-hl-ear-inner left"></div><div class="art-hl-ear-inner right"></div>
+        <div class="art-hl-head"></div>
+        <div class="art-hl-face"></div>
+        <div class="art-hl-eye left"></div><div class="art-hl-eye right"></div>
+        <div class="art-hl-nose"></div>
+        <div class="art-hl-snout"></div>
+        <div class="art-hl-fang f1"></div><div class="art-hl-fang f2"></div>
+        <div class="art-hl-whisker w1"></div><div class="art-hl-whisker w2"></div>
+        <div class="art-hl-whisker w3"></div><div class="art-hl-whisker w4"></div>
+        <div class="art-hl-scar"></div>
+      </div>`;
+    case 'tudi':
+      return `<div class="art-tudi">
+        <div class="art-td-sky"></div>
+        <div class="art-td-ground"></div>
+        <div class="art-td-gully"></div>
+        <div class="art-td-vline v1"></div><div class="art-td-vline v2"></div>
+        <div class="art-td-vline v3"></div><div class="art-td-vline v4"></div>
+        <div class="art-td-cave"></div>
+        <div class="art-td-cave-light"></div>
+        <div class="art-td-tree t1"><div class="art-td-trunk"></div><div class="art-td-leaves"></div></div>
+        <div class="art-td-tree t2"><div class="art-td-trunk"></div><div class="art-td-leaves"></div></div>
+      </div>`;
+    default:
+      return '';
+  }
+}
+
+function mkTFTCard(c){
+  const el=document.createElement('div');el.className='tft-card';
+  const costCls=K_CLS[c.rank];
+  const costNum=COST_MAP[c.rank];
+  const rankColor=K_COLORS[c.rank];
+
+  el.innerHTML=`<div class="tft-frame ${costCls}">
+    <!-- 角色插画区 -->
+    <div class="tft-art">
+      <div class="tft-art-inner">${getCharacterArtHTML(c.role)}</div>
+      <div class="tft-art-mask"></div>
+    </div>
+    <!-- 信息栏 -->
+    <div class="tft-info">
+      <div class="tft-name">${R_NAMES[c.role]}</div>
+      <div class="tft-desc">${R_DESCS[c.role]}</div>
+      <div class="tft-footer">
+        <div class="tft-cost">
+          <div class="tft-gem">${costNum}</div>
+          <span class="tft-cost-num">${costNum}</span>
+        </div>
+        <div class="tft-rank-tag">${K_SYM[c.rank]} ${K_NAMES[c.rank]}</div>
+      </div>
+    </div>
+  </div>`;
+  return el;
+}
+
+function renderAll(){renderSeats();renderHand();renderTable();renderMyInfo()}
+
+function renderSeats(){
+  const area=document.getElementById('table-area');area.innerHTML='';
+  // ★ 改为不过滤淘汰玩家——淘汰玩家保留在座位上显示灰色+X
+  const allPlayers=G.players;
+  const alive=allPlayers.filter(p=>!p.eliminated);
+  const total=alive.length;
+  // 圆形牌桌布局 — 头像对齐金圈外缘
+  // table-area尺寸720x720, 圆桌580x580(含border), 金圈外径600(半径300)
+  // 座位放在金圈外缘(半径300), 出牌框在内侧
+  const cx=360,cy=360,rx=300,ry=300;
+
+  const myPlayer=alive.find(p=>p.id===0);
+  const aliveOpponents=alive.filter(p=>p.id!==0);
+  const oppCount=aliveOpponents.length;
+
+  // 出牌框半径 — 在金圈内部，距离圆心约150px（圆桌内部偏中）
+  const slotR=150;
+
+  // 钟表方位分布（用户指定）：
+  // 2人: 你6点，对手12点
+  // 3人: 你6点，对手10点、2点
+  // 4人: 你6点，对手12点、9点、3点
+  // 5人: 你6点，4个对手等分剩余圆周(避开6点±30°)
+  function clockAngle(hour){ return hour*Math.PI/6 - Math.PI/2; }
+
+  function getOpponentAngle(i, count){
+    if(count===1) return clockAngle(12); // 2人：正上方
+    if(count===2){ // 3人：10点、2点
+      return i===0 ? clockAngle(10) : clockAngle(2);
+    }
+    if(count===3){ // 4人：12点、9点、3点
+      return [12,9,3].map(clockAngle)[i];
+    }
+    // 5人：360/5=72度间隔，自己6点，对手依次72度递增
+    // 6点 = 180度(数学), +72=252(约7:12), +72=324(约10:48), +72=36(约1:12), +72=108(约3:36)
+    if(count===4){
+      const myAng=clockAngle(6); // 6点 = 数学角 π/2
+      const step=2*Math.PI/5; // 72度
+      // 对手依次：6点+72°, +144°, +216°, +288°（逆时针看是7:12, 8:24, 9:36, 10:48）
+      return myAng + (i+1)*step;
+    }
+    // 6人及以上：等分全圆
+    const step=2*Math.PI/(count+1);
+    const myAng=clockAngle(6);
+    return myAng + (i+1)*step;
+  }
+
+  // ===== 渲染所有玩家（包括自己）的座位 + 出牌框 =====
+  function renderPlayerSeat(p, ang, isMe){
+    // 淘汰玩家：只显示灰色头像+X，不显示出牌框
+    if(p.eliminated){
+      const x=cx+rx*Math.cos(ang),y=cy+ry*Math.sin(ang);
+      const seat=document.createElement('div');
+      seat.className='seat eliminated';
+      seat.style.cssText=`left:${x}px;top:${y-26}px;transform:translateX(-50%)`;
+      seat.innerHTML=`<div class="seat-avatar eliminated-av">${p.emoji}<span class="eliminated-x">✕</span></div><div class="seat-name" style="color:#666;text-decoration:line-through;">${p.name}</div><div class="seat-card-count" style="color:#666;background:rgba(0,0,0,.3)">已淘汰</div>`;
+      area.appendChild(seat);
+      return; // 不渲染出牌框
+    }
+
+    const hasPlayed=G.playedCards[p.id]!==undefined;
+    const isMyPending=isMe && pendingCard && !hasPlayed;
+
+    // ---- 座位 ----
+    // 使用绝对定位让头像中心精确落在圆周上，其他信息相对头像排列
+    const seat=document.createElement('div');
+    seat.className='seat';
+    // 座位整体以头像顶部中心为锚点，头像高52px，所以top偏移26px让头像中心对齐圆周
+    const x=cx+rx*Math.cos(ang),y=cy+ry*Math.sin(ang);
+    seat.style.cssText=`left:${x}px;top:${y-26}px;transform:translateX(-50%)`;
+
+    if(isMe){
+      // 玩家自己的座位 — 显示头像+牌数+状态
+      let statusText='等待中';
+      if(isMyPending) statusText='出牌中';
+      else if(hasPlayed) statusText='已出牌';
+      seat.innerHTML=`<div class="seat-avatar ${(hasPlayed||isMyPending)?'current-turn':''}">${p.emoji}</div><div class="seat-card-count">🃏${p.hand.length}</div><div class="seat-status ${hasPlayed||isMyPending?'played':''}">${statusText}</div>`;
+    } else {
+      let statusText='等待中';
+      if(isMyPending) statusText='出牌中';
+      else if(hasPlayed) statusText='已出牌';
+      seat.innerHTML=`<div class="seat-avatar ${(hasPlayed||isMyPending)?'current-turn':''}">${p.emoji}</div><div class="seat-name">${p.name}</div><div class="seat-card-count">🃏${p.hand.length}</div><div class="seat-status ${hasPlayed||isMyPending?'played':''}">${statusText}</div>`;
+    }
+    area.appendChild(seat);
+
+    // ---- 出牌框（每个存活玩家都有，始终显示） ----
+    const sx=cx+slotR*Math.cos(ang),sy=cy+slotR*Math.sin(ang);
+    const slot=document.createElement('div');
+    slot.className='play-slot';
+    slot.id=`play-slot-${p.id}`;
+    slot.style.cssText=`position:absolute;left:${sx}px;top:${sy}px;transform:translate(-50%,-50%);pointer-events:auto`;
+    slot.dataset.targetPid=p.id;
+
+    // ===== 出牌框点击交互（触摸/鼠标通用） =====
+    slot.onclick=(ev)=>{
+      const targetPid=parseInt(slot.dataset.targetPid);
+      if(G.phase!=='playing')return;
+      if(G.playedCards[0]!==undefined)return;
+      if(isMe){
+        // 点击自己的出牌框
+        if(pendingCard){
+          // 已有暂存牌 → 确认提交
+          commitPending();
+        } else if(G.selectedIdx>=0){
+          // 有选中手牌 → 出到自己出牌框
+          doPlayCardToTarget(G.selectedIdx, 0);
+          G.selectedIdx=-1;
+        }
+      } else {
+        // 点击对手的出牌框
+        if(pendingCard){
+          // 已有暂存牌 → 换目标
+          if(pendingCard.targetPid!==targetPid){
+            addLog(`🔄 换目标：${R_ICONS[pendingCard.card.role]}${K_NAMES[pendingCard.card.rank]}${R_NAMES[pendingCard.card.role]}的目标改为${G.players[targetPid].name}`);
+            pendingCard.targetPid=targetPid;
+            renderAll();
+          }
+        } else if(G.selectedIdx>=0){
+          // 有选中手牌 → 出到该对手的出牌框
+          doPlayCardToTarget(G.selectedIdx, targetPid);
+          G.selectedIdx=-1;
+        }
+      }
+    };
+
+    if(isMe){
+      // === 玩家自己的出牌框 ===
+      if(G.phase==='revealing' && hasPlayed){
+        // 开牌阶段 — 在出牌框内翻开显示卡牌
+        const revealed=mkTFTCard(G.playedCards[p.id]);
+        revealed.style.width='72px';revealed.style.height='98px';
+        revealed.classList.add('reveal-card');
+        revealed.onclick=null;revealed.style.cursor='default';
+        slot.appendChild(revealed);
+      } else if(isMyPending){
+        // 有暂存牌 — 显示卡牌
+        const mini=mkTFTCard(pendingCard.card);
+        mini.style.width='72px';mini.style.height='98px';
+        mini.classList.add('slot-mini-card');
+        mini.onclick=null;
+        makeSlotCardDraggable(mini);
+        slot.appendChild(mini);
+        const hint=document.createElement('div');
+        hint.style.cssText='position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--gold-primary);white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.9);letter-spacing:1px';
+        hint.textContent='🔄 点击换牌/点击确认';
+        slot.appendChild(hint);
+      } else if(hasPlayed){
+        // 已出牌 → 显示暗牌
+        const fc=document.createElement('div');fc.className='face-down-card';
+        fc.style.width='72px';fc.style.height='98px';
+        fc.innerHTML=`<span>😊</span><span class="plabel">你</span>`;
+        slot.appendChild(fc);
+      } else {
+        // 空出牌框 — 等待出牌
+        slot.innerHTML='<span style="color:rgba(240,178,50,.3);font-size:11px">点此出牌</span>';
+        // 如果有选中手牌，高亮出牌框提示可点击
+        if(G.selectedIdx>=0)slot.classList.add('drag-over');
+      }
+      const lbl=document.createElement('div');lbl.className='slot-label';lbl.textContent='你的出牌框';
+      slot.appendChild(lbl);
+
+    } else {
+      // === 对手的出牌框 ===
+      if(G.phase==='revealing' && hasPlayed){
+        // 开牌阶段 — 在出牌框内翻开显示卡牌
+        const revealed=mkTFTCard(G.playedCards[p.id]);
+        revealed.style.width='72px';revealed.style.height='98px';
+        revealed.classList.add('reveal-card');
+        revealed.onclick=null;revealed.style.cursor='default';
+        slot.appendChild(revealed);
+      } else if(hasPlayed){
+        // AI已出牌 → 显示暗牌
+        const fc=document.createElement('div');fc.className='face-down-card';
+        fc.style.width='72px';fc.style.height='98px';
+        fc.innerHTML=`<span>${p.emoji}</span><span class="plabel">${p.name}</span>`;
+        slot.appendChild(fc);
+      } else {
+        slot.innerHTML='<span style="color:rgba(240,178,50,.3);font-size:11px">点此出牌</span>';
+        if(G.selectedIdx>=0)slot.classList.add('drag-over');
+      }
+      const lbl=document.createElement('div');lbl.className='slot-label';lbl.textContent=p.name+'的出牌框';
+      slot.appendChild(lbl);
+    }
+
+    area.appendChild(slot);
+  }
+
+  // 渲染所有存活对手
+  aliveOpponents.forEach((p,i)=>{
+    const ang=getOpponentAngle(i, oppCount);
+    renderPlayerSeat(p, ang, false);
+  });
+
+  // 渲染淘汰的对手（保留在原位置显示灰色+X）
+  const eliminatedOpponents=allPlayers.filter(p=>p.id!==0 && p.eliminated);
+  eliminatedOpponents.forEach((p,i)=>{
+    // 淘汰玩家放在存活对手之后的角度位置
+    const ang=getOpponentAngle(oppCount + i, oppCount + eliminatedOpponents.length || oppCount + 1);
+    renderPlayerSeat(p, ang, false);
+  });
+
+  // 渲染玩家自己（固定在6点钟方向）— 即使淘汰也渲染
+  if(myPlayer){
+    renderPlayerSeat(myPlayer, clockAngle(6), true);
+  } else if(allPlayers[0] && allPlayers[0].eliminated){
+    // 玩家自己被淘汰了，也要在6点显示灰色头像
+    renderPlayerSeat(allPlayers[0], clockAngle(6), true);
+  }
+}
+
+/* ========== 拖拽出牌系统 ========== */
+let dragCardIdx=-1; // 当前拖拽的手牌索引
+let dragSource=''; // 'hand' 或 'slot' — 标记拖拽来源
+// pendingCard: 暂存出牌（未正式提交，可随时换回）
+// {card, targetPid} 或 null
+let pendingCard=null;
+
+function commitPending(){
+  // 将暂存牌正式提交为已出牌
+  if(!pendingCard)return;
+  // 防御：如果已经出过牌了，把暂存牌退回手牌，不允许覆盖
+  if(G.playedCards[0]!==undefined){
+    console.error('[BUG-防御] commitPending时已有出牌，退回暂存牌');
+    G.players[0].hand.push(pendingCard.card);
+    pendingCard=null;
+    return;
+  }
+  const c=pendingCard.card;
+  G.playedCards[0]=c;G.selectedIdx=-1;
+  addLog(`✅ 你出了${R_ICONS[c.role]}${K_NAMES[c.rank]}${R_NAMES[c.role]}，目标是${G.players[pendingCard.targetPid].name}`);
+  playCardSound();
+  pendingCard=null;
+  renderAll();checkAllPlayed();
+}
+
+function cancelPending(){
+  // 把暂存牌退回手牌
+  if(!pendingCard)return;
+  G.players[0].hand.push(pendingCard.card);
+  pendingCard=null;
+  renderAll();
+}
+
+function initDragAndDrop(){
+  const ha=document.getElementById('hand-area');
+  ha.ondragover=(e)=>{
+    e.preventDefault();
+    // 从出牌框拖回时显示手牌区高亮
+    if(dragSource==='slot'&&pendingCard){
+      e.dataTransfer.dropEffect='move';
+      ha.classList.add('hand-drag-over');
+    }
+  };
+  ha.ondragleave=(e)=>{ha.classList.remove('hand-drag-over')};
+  ha.ondrop=(e)=>{
+    e.preventDefault();ha.classList.remove('hand-drag-over');
+    if(dragSource==='slot'&&pendingCard){
+      // 从出牌框拖回手牌 → 取消暂存
+      cancelPending();
+      dragCardIdx=-1;dragSource='';
+    }
+  };
+}
+
+function makeCardDraggable(el, idx){
+  el.draggable=true;
+  el.ondragstart=(e)=>{
+    if(G.phase!=='playing')return; // 不再检查 playedCards[0]，因为用pendingCard
+    dragCardIdx=idx;dragSource='hand';
+    el.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain', String(idx));
+    setTimeout(()=>el.classList.remove('dragging'), 0)
+  };
+  el.ondragend=(e)=>{
+    el.classList.remove('dragging');
+    dragCardIdx=-1;dragSource='';
+    document.querySelectorAll('.play-slot').forEach(s=>s.classList.remove('drag-over'));
+  };
+}
+
+// 让出牌框中暂存的牌可以被拖走
+function makeSlotCardDraggable(el){
+  el.draggable=true;
+  el.style.cursor='grab';
+  el.ondragstart=(e)=>{
+    if(G.phase!=='playing'||!pendingCard){e.preventDefault();return}
+    dragSource='slot';dragCardIdx=-2; // 标记从出牌框拖出
+    el.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain','slot-card');
+    setTimeout(()=>el.classList.remove('dragging'),0);
+  };
+  el.ondragend=(e)=>{
+    el.classList.remove('dragging');
+    dragCardIdx=-1;dragSource='';
+    document.querySelectorAll('.play-slot').forEach(s=>s.classList.remove('drag-over'));
+  };
+}
+
+// 初始化出牌框的拖放事件
+function initPlaySlots(){
+  document.querySelectorAll('.play-slot').forEach(slot=>{
+    slot.ondragover=(e)=>{
+      e.preventDefault();
+      if(dragSource==='hand'&&dragCardIdx>=0&&G.phase==='playing'){
+        slot.classList.add('drag-over');
+        e.dataTransfer.dropEffect='move';
+      }else if(dragSource==='slot'&&pendingCard&&G.phase==='playing'){
+        // 允许从出牌框拖到另一个出牌框（换目标）
+        slot.classList.add('drag-over');
+        e.dataTransfer.dropEffect='move';
+      }
+    };
+    slot.ondragleave=(e)=>{
+      slot.classList.remove('drag-over')
+    };
+    slot.ondrop=(e)=>{
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      const targetPid=parseInt(slot.dataset.targetPid);
+      if(dragSource==='hand'&&dragCardIdx>=0&&G.phase==='playing'){
+        doPlayCardToTarget(dragCardIdx, targetPid);
+        dragCardIdx=-1;dragSource='';
+      }else if(dragSource==='slot'&&pendingCard&&G.phase==='playing'){
+        // 从一个出牌框拖到另一个出牌框 → 只换目标，牌不变
+        if(pendingCard.targetPid!==targetPid){
+          addLog(`🔄 换目标：${R_ICONS[pendingCard.card.role]}${K_NAMES[pendingCard.card.rank]}${R_NAMES[pendingCard.card.role]}的目标改为${G.players[targetPid].name}`);
+        }
+        pendingCard.targetPid=targetPid;
+        dragCardIdx=-1;dragSource='';
+        renderAll();
+      }
+    };
+  });
+}
+
+// 出牌到指定目标（暂存，不立即提交）
+function doPlayCardToTarget(cardIdx, targetPid){
+  if(cardIdx<0||G.phase!=='playing')return;
+  const p=G.players[0];
+  if(cardIdx>=p.hand.length)return;
+  // 防御：如果已经正式出牌了，不允许再拖牌（防止覆盖）
+  if(G.playedCards[0]!==undefined){
+    console.error('[BUG-防御] doPlayCardToTarget时已有正式出牌，忽略');
+    return;
+  }
+  const c=p.hand.splice(cardIdx,1)[0];
+
+  // 如果之前已有暂存牌，先退回手牌
+  if(pendingCard){
+    p.hand.push(pendingCard.card);
+  }
+
+  // 暂存新牌
+  pendingCard={card:c, targetPid:targetPid};
+  G.selectedIdx=-1;
+  addLog(`📌 你将${R_ICONS[c.role]}${K_NAMES[c.rank]}${R_NAMES[c.role]}放入出牌框（目标：${G.players[targetPid].name}，可随时换牌）`);
+  playCardSound();
+  renderAll();
+
+  // 如果所有其他AI都已出牌，则自动确认
+  const alive=G.players.filter(x=>!x.eliminated);
+  const allOthersPlayed=alive.filter(x=>x.id!==0).every(x=>G.playedCards[x.id]!==undefined);
+  if(allOthersPlayed){
+    commitPending();
+  }
+}
+
+function renderHand(){
+  const ha=document.getElementById('hand-area');ha.innerHTML='';
+  const p=G.players[0];if(!p||p.eliminated)return;
+  // 手牌排序：按角色类型分组（土地→鸡→旗杆→黄狼→虫），同角色内等级从高到低（老→大→中→小）
+  const roleOrder={};ROLES.forEach((r,i)=>roleOrder[r]=i);
+  const rankOrder={lao:0,da:1,zhong:2,xiao:3};
+  const sorted=[...p.hand].sort((a,b)=>{
+    if(roleOrder[a.role]!==roleOrder[b.role])return roleOrder[a.role]-roleOrder[b.role];
+    return rankOrder[a.rank]-rankOrder[b.rank];
+  });
+  // 用排序后的索引映射回原始手牌（保持手牌数据不变，仅影响显示顺序）
+  const idxMap=[];
+  for(const sc of sorted){idxMap.push(p.hand.findIndex((c,i)=>c.id===sc.id&&!idxMap.includes(i)))}
+  idxMap.forEach((origIdx,dispIdx)=>{
+    const c=p.hand[origIdx];
+    const el=mkTFTCard(c);if(origIdx===G.selectedIdx)el.classList.add('selected');
+    // 手牌区缩小显示
+    el.style.width='90px';el.style.height='121px';
+    // 拖拽出牌
+    makeCardDraggable(el, origIdx);
+    // 保留点击选中（用于查看/高亮）
+    el.onclick=()=>selectCard(origIdx);
+    ha.appendChild(el);
+  });
+  // 初始化出牌框拖放事件
+  initPlaySlots();
+}
+
+function renderTable(){
+  // 棋盘中央区域 — 出牌框已显示暗牌，中央不再重复
+  // 仅在revealing阶段由renderReveal使用中央区域
+  const tc=document.getElementById('table-center');tc.innerHTML='';
+}
+
+function renderReveal(entries){
+  // 翻牌：直接在出牌框中翻开，不在中央重新排列
+  const tc=document.getElementById('table-center');tc.innerHTML='';
+  // 重新渲染座位（出牌框会根据G.phase==='revealing'显示翻开的牌）
+  renderSeats();
+}
+
+function renderMyInfo(){
+  const p=G.players[0];if(!p)return;
+  document.getElementById('my-card-count').textContent=p.hand.length;
+  document.getElementById('round-info').textContent=`第 ${G.round} 轮`;
+  // 显示全局牌数（调试用，确保始终=20）
+  const totalCards=G.players.reduce((s,pl)=>s+pl.hand.length,0);
+  const dbgEl=document.getElementById('total-card-count');
+  if(dbgEl)dbgEl.textContent=`全局${totalCards}张`;
+  // 更新顶部状态栏
+  const gs=document.getElementById('game-status');
+  if(gs){
+    const aliveCount=G.players.filter(x=>!x.eliminated).length;
+    let statusText=`<span class="status-highlight">第 ${G.round} 轮</span> · 存活 ${aliveCount} 人`;
+    if(G.phase==='waiting_reveal'){
+      statusText+=` · <span style="color:var(--gold-primary)">⏳ 即将开牌...</span>`;
+    }else if(pendingCard){
+      statusText+=` · <span style="color:#2ecc71">📌 已放牌（可换牌）</span>`;
+    }else if(G.phase==='playing'&&!pendingCard&&G.playedCards[0]===undefined){
+      statusText+=` · <span style="color:var(--text-secondary)">点牌选牌，再点出牌框</span>`;
+    }
+    gs.innerHTML=statusText;
+  }
+}
+
+function showKoujue(t){
+  const p=document.createElement('div');p.className='koujue-popup';p.textContent=t;
+  document.getElementById('game-screen').appendChild(p);setTimeout(()=>p.remove(),2800);
+}
+
+function showSweepPopup(isWin, text){
+  const p=document.createElement('div');
+  p.className='sweep-popup '+(isWin?'win':'lose');
+  p.textContent=text;
+  document.getElementById('game-screen').appendChild(p);
+  setTimeout(()=>p.remove(),3000);
+}
+
+function showVoiceIndicator(){
+  const v=document.createElement('div');v.className='voice-indicator';
+  v.innerHTML='<div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><span>播报中</span>';
+  document.getElementById('game-screen').appendChild(v);
+}
+
+function addLog(t,type=''){
+  G.logs.push({t,type});const la=document.getElementById('log-area');if(!la)return;
+  const d=document.createElement('div');d.className='log-item'+(type?' '+type:'');d.textContent=t;
+  la.appendChild(d);la.scrollTop=la.scrollHeight;
+}
+
+function showRules(){document.getElementById('rules-modal').style.display='flex'}
+
+// ===== 移动端自适应缩放 =====
+function adaptMobile(){
+  const isMobile=window.innerWidth<=768;
+  const gs=document.getElementById('game-screen');
+  if(!gs)return;
+  if(isMobile){
+    // 根据屏幕宽度计算缩放比例（游戏区设计宽度约720px）
+    const scale=Math.min(window.innerWidth/750, window.innerHeight/900);
+    gs.style.transform=`scale(${Math.max(scale,0.45)})`;
+    gs.style.transformOrigin='top center';
+  } else {
+    gs.style.transform='';
+    gs.style.transformOrigin='';
+  }
+}
+window.addEventListener('resize', adaptMobile);
+// 首次加载时适配
+setTimeout(adaptMobile, 100);
+
+</script>
+</body>
+</html>
