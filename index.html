@@ -896,82 +896,14 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
   #start-screen,#game-screen,#match-screen{display:none!important}
 }
 
-/* 横屏移动端样式 */
+/* 横屏移动端 - 只做整体缩放，不改单个元素尺寸 */
 @media(orientation:landscape) and (max-height:500px){
-  html,body{overflow:hidden;width:100vw;height:100vh;margin:0;padding:0;position:relative}
-  body{background:#0a0812}
-
-  /* 开始界面紧凑 */
-  .title{font-size:22px;letter-spacing:4px;margin-bottom:2px}
-  .subtitle{font-size:9px;margin-bottom:10px;letter-spacing:3px}
-  .room-grid{grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
-  .room-btn{width:70px;height:78px;border-radius:8px}
-  .room-icon{font-size:20px;margin-bottom:4px}
-  .room-name{font-size:10px}
-  .room-desc{font-size:7px}
-  .rules-btn{font-size:9px;padding:4px 12px}
-  .sound-toggle{padding:4px 8px;font-size:14px}
-
-  /* 牌桌 - 横屏缩小 */
-  .table-area{transform:scale(0.6)!important;transform-origin:center center!important}
-
-  /* 手牌区 - 紧凑横条 */
-  .hand-area{max-height:15vh!important;padding:2px 8px!important;gap:2px!important}
-  .hand-area .tft-card{
-    width:42px!important;height:57px!important;border-radius:3px!important;
-    font-size:6px!important;cursor:grab!important
+  html,body{
+    overflow:hidden;width:100vw;height:100vh;
+    margin:0;padding:0;position:relative
   }
-  .tft-card .card-name{font-size:7px!important}
-  .tft-card .card-cost{width:12px!important;height:12px!important;font-size:8px!important}
-  .tft-card .card-rank{font-size:5px!important;padding:0 1px!important}
-  .tft-card .card-art{transform:scale(0.55)!important;transform-origin:center!important}
-
-  /* 战报 */
-  .log-area{width:100px!important;max-height:18vh!important;font-size:6px!important;top:2px!important;right:2px!important;opacity:.65!important;padding:2px!important;border-radius:3px!important}
-
-  /* 顶栏 */
-  .top-bar{font-size:7px!important;padding:1px 3px!important;border-radius:3px!important}
-  .game-status{font-size:7px!important}
-  .timer-bar{width:50px!important;height:14px!important}
-  .my-info{font-size:7px!important;padding:1px 4px!important}
-
-  /* 出牌框 */
-  .play-slot{width:38px!important;height:52px!important;border-radius:3px!important}
-  .slot-label{font-size:5px!important}
-  .face-down-card{width:34px!important;height:46px!important;font-size:11px!important;border-radius:3px!important}
-  .face-down-card .plabel{font-size:5px!important}
-
-  /* 座位头像 */
-  .seat-avatar{width:24px!important;height:24px!important;font-size:12px!important}
-  .seat-name{font-size:6px!important}
-  .seat-card-count{font-size:5px!important}
-  .seat-avatar .eliminated-x{width:10px!important;height:10px!important;font-size:6px!important}
-
-  /* 中央倒计时 */
-  .table-timer{width:52px!important;height:52px!important}
-  .table-timer .tt-num{font-size:22px!important}
-
-  /* 按钮 */
-  .btn-play{padding:3px 8px!important;font-size:9px!important;border-radius:4px!important}
-  .btn-surrender{padding:2px 5px!important;font-size:7px!important}
-
-  /* 结果弹窗 */
-  .result-overlay h1{font-size:18px!important}
-  .result-overlay p{font-size:10px!important}
-  .result-overlay .result-restart,.result-overlay .result-home{padding:6px 14px!important;font-size:10px!important}
-
-  /* 规则弹窗 */
-  .rules-modal .rules-content{max-height:40vh!important;font-size:9px!important;padding:8px!important}
-
-  /* 口诀弹窗 */
-  .koujue-popup{font-size:16px!important}
-  .sweep-popup{font-size:22px!important}
-}
-
-/* 通用移动端样式（横竖都生效） */
-@media(max-width:768px){
-  /* 隐藏seat-status省空间 */
-  .seat-status{display:none!important}
+  body{background:#0a0812}
+  /* 不对任何子元素单独缩放！全部由JS adaptMobile()统一处理 */
 }
 </style>
 </head>
@@ -2970,50 +2902,76 @@ function addLog(t,type=''){
 function showRules(){document.getElementById('rules-modal').style.display='flex'}
 
 // ===== 移动端自适应缩放（支持竖屏+横屏，安全区域适配） =====
+// ===== 移动端自适应缩放（横屏等比缩小PC布局） =====
 function adaptMobile(){
   const gs=document.getElementById('game-screen');
   const ss=document.getElementById('start-screen');
   if(!gs)return;
 
-  const isMobile=window.innerWidth<=768;
-  if(!isMobile){
-    gs.style.transform='';gs.style.transformOrigin='';
-    gs.style.width='';gs.style.height='';
-    gs.style.position='';gs.style.top='';gs.style.left='';
-    if(ss){ss.style.transform='';ss.style.transformOrigin='';}
+  const isMobileLandscape=window.innerWidth<=1024 && window.innerWidth>window.innerHeight;
+  const isMobilePortrait=window.innerWidth<=768 && window.innerHeight>=window.innerWidth;
+
+  // 竖屏移动：不缩放，由CSS rotate-hint遮罩处理
+  if(isMobilePortrait){
+    gs.style.cssText='';
+    if(ss)ss.style.cssText='';
     return;
   }
 
-  // 横屏模式：填满屏幕
-  const isLandscape=window.innerWidth>window.innerHeight;
-  if(!isLandscape)return; // 竖屏时由CSS遮罩处理，不缩放
+  // 桌面/平板非移动：清除所有缩放
+  if(!isMobileLandscape){
+    gs.style.transform='';gs.style.transformOrigin='';
+    gs.style.width='';gs.style.height='';
+    gs.style.position='';gs.style.top='';gs.style.left='';
+    if(ss){ss.style.transform='';ss.style.transformOrigin='';ss.style.width='';ss.style.height='';ss.style.position='';ss.style.top='';ss.style.left='';}
+    return;
+  }
 
-  // 安全区域
-  const safeTop=(window.visualViewport?window.visualViewport.offsetTop:0)||0;
-  const safeBottom=(window.visualViewport?(window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop):0)||0;
-  const availW=window.innerWidth;
-  const availH=window.innerHeight-safeTop-safeBottom;
+  // ========== 横屏移动模式 ==========
+  // 渐进式设计尺寸匹配不同屏幕
+  let designW, designH;
+  const screenW=window.innerWidth, screenH=window.innerHeight;
 
-  // 横屏设计尺寸（更紧凑）
-  const designW=720, designH=460;
-  const padding=4;
-  const scaleX=(availW-padding*2)/designW;
-  const scaleY=(availH-padding*2)/designH;
+  if(screenH <= 360){
+    // 小手机（如SE）：紧凑
+    designW=1280; designH=650;
+  } else if(screenH <= 450){
+    // 标准手机
+    designW=1280; designH=720;
+  } else {
+    // 大手机/小平板
+    designW=1400; designH=800;
+  }
+
+  // 计算缩放比例（留2px边距避免贴边）
+  const pad=2;
+  const scaleX=(screenW-pad*2)/designW;
+  const scaleY=(screenH-pad*2)/designH;
   const scale=Math.min(scaleX, scaleY);
 
-  const finalLeft=(availW - designW*scale)/2;
-  const finalTop=safeTop+(availH - designH*scale)/2;
+  // 居中定位
+  const finalLeft=(screenW - designW*scale)/2;
+  const finalTop=(screenH - designH*scale)/2;
 
-  [gs, ss].forEach(el => {
-    if(!el) return;
-    el.style.transform=`scale(${scale})`;
-    el.style.transformOrigin='top left';
-    el.style.width=designW+'px';
-    el.style.height=designH+'px';
-    el.style.position='absolute';
-    el.style.left=finalLeft+'px';
-    el.style.top=finalTop+'px';
-  });
+  // 应用到游戏区
+  gs.style.transform=`scale(${scale})`;
+  gs.style.transformOrigin='top left';
+  gs.style.width=designW+'px';
+  gs.style.height=designH+'px';
+  gs.style.position='absolute';
+  gs.style.left=finalLeft+'px';
+  gs.style.top=finalTop+'px';
+
+  // 开始界面也同步缩放
+  if(ss){
+    ss.style.transform=`scale(${scale})`;
+    ss.style.transformOrigin='top left';
+    ss.style.width=designW+'px';
+    ss.style.height=designH+'px';
+    ss.style.position='absolute';
+    ss.style.left=finalLeft+'px';
+    ss.style.top=finalTop+'px';
+  }
 }
 window.addEventListener('resize', adaptMobile);
 // 首次加载时适配
