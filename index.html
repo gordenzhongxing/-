@@ -8,6 +8,15 @@
 <meta property="og:description" content="虫蛀黄狼皮，鸡吃虫，黄狼吃鸡…五角色四等级策略卡牌对战，支持2-5人混战！">
 <meta property="og:type" content="website">
 <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='400' height='400' fill='%230a0812'/%3E%3Ctext x='50%25' y='35%25' text-anchor='middle' fill='%23f0b232' font-size='52' font-weight='bold' font-family='sans-serif'%3E虫蛀黄狼皮%3C/text%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%238a8098' font-size='18' font-family='sans-serif'%3E五指猜拳 · 策略卡牌%3C/text%3E%3Ctext x='50%25' y='75%25' text-anchor='middle' fill='%23f0b232' font-size='40'%3E🐛🐺🐔🚩🏔%3C/text%3E%3C/svg%3E">
+<!-- PWA/全屏：隐藏浏览器导航栏 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="x5-orientation" content="landscape">
+<meta name="x5-fullscreen" content="true">
+<meta name="browsermode" content="application">
+<meta name="full-screen" content="yes">
+<link rel="manifest" href="manifest.json">
 <title>虫蛀黄狼皮 - 策略卡牌对战</title>
 <style>
 :root{
@@ -905,6 +914,30 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
   body{background:#0a0812}
   /* 不对任何子元素单独缩放！全部由JS adaptMobile()统一处理 */
 }
+
+/* ===== 全屏模式（隐藏导航栏后生效） ===== */
+:fullscreen{width:100vw!important;height:100vh!important;background:#0a0812}
+:-webkit-full-screen{width:100vw!important;height:100vh!important;background:#0a0812}
+:fullscreen #start-screen,:fullscreen #game-screen,:fullscreen #match-screen{
+  width:100vw!important;height:100vh!important
+}
+:-webkit-full-screen #start-screen,:-webkit-full-screen #game-screen,:-webkit-full-screen #match-screen{
+  width:100vw!important;height:100vh!important
+}
+
+/* ===== 全屏按钮（移动端可见） ===== */
+.fullscreen-btn{
+  display:none;position:fixed;bottom:12px;right:12px;z-index:99998;
+  background:rgba(240,178,50,.9);color:#0a0812;border:none;border-radius:8px;
+  padding:8px 16px;font-size:14px;font-weight:bold;cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.4)
+}
+@media(max-width:1024px){
+  .fullscreen-btn{display:block}
+}
+@media(orientation:portrait) and (max-width:768px){
+  .fullscreen-btn{display:none}
+}
 </style>
 </head>
 <body>
@@ -1459,6 +1492,8 @@ function doSurrender(){
 /* ========== 匹配 ========== */
 function startMatch(n){
   initAudio();G.playerCount=n;
+  // 移动端自动请求全屏，隐藏企业微信导航栏
+  tryGoFullscreen();
   document.getElementById('start-screen').style.display='none';
   document.getElementById('match-screen').style.display='flex';
   const mp=document.getElementById('match-players');mp.innerHTML='';
@@ -2887,6 +2922,40 @@ function showSweepPopup(isWin, text){
   setTimeout(()=>p.remove(),3000);
 }
 
+/* ===== 全屏API：隐藏企业微信/浏览器导航栏 ===== */
+function tryGoFullscreen(){
+  // 仅移动端请求全屏
+  if(window.innerWidth>1024) return;
+  const el=document.documentElement;
+  const rfs=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen;
+  if(rfs){
+    rfs.call(el).then(()=>{
+      console.log('[Fullscreen] 已进入全屏模式，导航栏已隐藏');
+      setTimeout(adaptMobile,300);
+      setTimeout(adaptMobile,800);
+    }).catch(e=>{
+      console.warn('[Fullscreen] 全屏请求被拒绝:',e.message);
+      // 部分浏览器需要用户手势才能全屏，提示用户点击全屏按钮
+    });
+  }
+}
+function exitFullscreen(){
+  const efs=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
+  if(efs) efs.call(document);
+}
+function isFullscreen(){
+  return !!(document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement);
+}
+// 全屏状态变化时重新适配
+document.addEventListener('fullscreenchange',()=>{
+  setTimeout(adaptMobile,100);
+  setTimeout(adaptMobile,500);
+});
+document.addEventListener('webkitfullscreenchange',()=>{
+  setTimeout(adaptMobile,100);
+  setTimeout(adaptMobile,500);
+});
+
 function showVoiceIndicator(){
   const v=document.createElement('div');v.className='voice-indicator';
   v.innerHTML='<div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><span>播报中</span>';
@@ -2932,13 +3001,22 @@ function adaptMobile(){
   // 核心思路：保持game-screen为PC版大尺寸(1920x1080)，用scale整体缩小
   // 这样内部所有固定尺寸元素(580px圆桌、80px出牌框等)保持原始比例
   
-  const vv=window.visualViewport;
-  // 可用可视区域（排除浏览器导航栏）
-  const availW=vv?vv.width:window.innerWidth;
-  const availH=vv?vv.height:window.innerHeight;
-  // 导航栏偏移
-  const vvLeft=vv?(vv.offsetLeft||0):0;
-  const vvTop=vv?(vv.offsetTop||0):0;
+  // 全屏模式下直接用window尺寸（没有导航栏），否则用visualViewport
+  const inFS=isFullscreen();
+  let availW, availH, vvLeft=0, vvTop=0;
+  
+  if(inFS){
+    // 全屏模式：导航栏已隐藏，直接用屏幕尺寸
+    availW=window.innerWidth;
+    availH=window.innerHeight;
+  } else {
+    // 非全屏：用visualViewport排除导航栏
+    const vv=window.visualViewport;
+    availW=vv?vv.width:window.innerWidth;
+    availH=vv?vv.height:window.innerHeight;
+    vvLeft=vv?(vv.offsetLeft||0):0;
+    vvTop=vv?(vv.offsetTop||0):0;
+  }
 
   // PC版设计基准尺寸
   const designW=1920, designH=1080;
@@ -2985,6 +3063,8 @@ setTimeout(adaptMobile, 500);
 setTimeout(adaptMobile, 1500);
 
 </script>
+<!-- 全屏按钮：移动端点击可隐藏导航栏 -->
+<button class="fullscreen-btn" id="fullscreen-btn" onclick="tryGoFullscreen()">⛶ 全屏</button>
 <div class="rotate-hint">
   <div class="rh-phone">📱</div>
   <div class="rh-title">请横屏游玩</div>

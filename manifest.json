@@ -1,0 +1,17 @@
+{
+  "name": "虫蛀黄狼皮 - 策略卡牌对战",
+  "short_name": "虫蛀黄狼皮",
+  "description": "五指猜拳策略卡牌对战，支持2-5人混战",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0a0812",
+  "theme_color": "#0a0812",
+  "start_url": ".",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Crect width='192' height='192' rx='24' fill='%230a0812'/%3E%3Ctext x='50%25' y='40%25' text-anchor='middle' fill='%23f0b232' font-size='28' font-weight='bold' font-family='sans-serif'%3E虫蛀%3C/text%3E%3Ctext x='50%25' y='65%25' text-anchor='middle' fill='%23f0b232' font-size='28' font-weight='bold' font-family='sans-serif'%3E黄狼皮%3C/text%3E%3Ctext x='50%25' y='85%25' text-anchor='middle' fill='%23f0b232' font-size='20'%3E🐛🐺🐔%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
