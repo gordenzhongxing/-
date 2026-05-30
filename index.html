@@ -2902,7 +2902,7 @@ function addLog(t,type=''){
 function showRules(){document.getElementById('rules-modal').style.display='flex'}
 
 // ===== 移动端自适应缩放（支持竖屏+横屏，安全区域适配） =====
-// ===== 移动端自适应缩放（横屏等比缩小PC布局） =====
+// ===== 移动端自适应缩放（横屏整体等比缩小，保持PC布局比例） =====
 function adaptMobile(){
   const gs=document.getElementById('game-screen');
   const ss=document.getElementById('start-screen');
@@ -2923,71 +2923,55 @@ function adaptMobile(){
     gs.style.transform='';gs.style.transformOrigin='';
     gs.style.width='';gs.style.height='';
     gs.style.position='';gs.style.top='';gs.style.left='';
-    if(ss){ss.style.transform='';ss.style.transformOrigin='';ss.style.width='';ss.style.height='';ss.style.position='';ss.style.top='';ss.style.left='';}
+    gs.style.overflow='';
+    if(ss){ss.style.transform='';ss.style.transformOrigin='';ss.style.width='';ss.style.height='';ss.style.position='';ss.style.top='';ss.style.left='';ss.style.overflow='';}
     return;
   }
 
   // ========== 横屏移动模式 ==========
-  // 检测浏览器/App 导航栏占用的顶部空间（企业微信/微信内置浏览器）
-  let topOffset=0;
-  // 方法1: visualViewport API（最准确）
-  if(window.visualViewport){
-    topOffset=window.visualViewport.offsetTop||0;
-  }
-  // 方法2: 如果visualViewport没返回值，用screen和innerHeight差估算
-  if(topOffset===0 && window.outerHeight && window.innerHeight<window.outerHeight-40){
-    topOffset=Math.max(0, (window.outerHeight-window.innerHeight)/3);
-  }
-  // 兜底：移动端横屏通常有44-80px的导航栏
-  if(topOffset===0 && isMobileLandscape){
-    topOffset=50; // 安全估算值
-  }
+  // 核心思路：保持game-screen为PC版大尺寸(1920x1080)，用scale整体缩小
+  // 这样内部所有固定尺寸元素(580px圆桌、80px出牌框等)保持原始比例
+  
+  const vv=window.visualViewport;
+  // 可用可视区域（排除浏览器导航栏）
+  const availW=vv?vv.width:window.innerWidth;
+  const availH=vv?vv.height:window.innerHeight;
+  // 导航栏偏移
+  const vvLeft=vv?(vv.offsetLeft||0):0;
+  const vvTop=vv?(vv.offsetTop||0):0;
 
-  const screenW=window.innerWidth;
-  // 实际可用高度 = 屏幕高度 - 顶部导航栏 - 底部工具栏(如有)
-  // 底部也留一些空间给浏览器底部栏
-  const bottomOffset=isMobileLandscape?8:0;
-  const availH=window.innerHeight-topOffset-bottomOffset;
-  const availW=screenW;
+  // PC版设计基准尺寸
+  const designW=1920, designH=1080;
 
-  // 渐进式设计尺寸匹配不同屏幕
-  let designW, designH;
-  if(availH <= 300){
-    designW=1280; designH=600;
-  } else if(availH <= 380){
-    designW=1280; designH=680;
-  } else {
-    designW=1400; designH=760;
-  }
-
-  // 计算缩放比例（留边距避免贴边）
-  const pad=4;
-  const scaleX=(availW-pad*2)/designW;
-  const scaleY=(availH-pad*2)/designH;
+  // 缩放比例：把1920x1080缩进availW×availH
+  const scaleX=availW/designW;
+  const scaleY=availH/designH;
   const scale=Math.min(scaleX, scaleY);
 
-  // 居中定位（考虑topOffset偏移）
-  const finalLeft=(availW - designW*scale)/2;
-  const finalTop=topOffset+(availH - designH*scale)/2;
+  // 缩放后的实际尺寸
+  const scaledW=designW*scale;
+  const scaledH=designH*scale;
+
+  // 居中偏移（在可视区域内居中）
+  const offsetX=vvLeft+(availW-scaledW)/2;
+  const offsetY=vvTop+(availH-scaledH)/2;
 
   // 应用到游戏区
-  gs.style.transform=`scale(${scale})`;
-  gs.style.transformOrigin='top left';
   gs.style.width=designW+'px';
   gs.style.height=designH+'px';
   gs.style.position='absolute';
-  gs.style.left=finalLeft+'px';
-  gs.style.top=finalTop+'px';
+  gs.style.overflow='hidden';
+  gs.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
+  gs.style.transformOrigin='top left';
 
-  // 开始界面也同步缩放
+  // 开始界面也同步
   if(ss){
-    ss.style.transform=`scale(${scale})`;
-    ss.style.transformOrigin='top left';
     ss.style.width=designW+'px';
     ss.style.height=designH+'px';
     ss.style.position='absolute';
-    ss.style.left=finalLeft+'px';
-    ss.style.top=finalTop+'px';
+    ss.style.overflow='hidden';
+    ss.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
+    ss.style.transformOrigin='top left';
   }
 }
 window.addEventListener('resize', adaptMobile);
