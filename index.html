@@ -2,6 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<!-- 禁用缓存：确保微信中每次打开都是最新版本 -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <!-- 微信分享 Meta 标签 -->
 <meta property="og:title" content="虫蛀黄狼皮 - 五指猜拳策略卡牌">
@@ -12,7 +16,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="x5-orientation" content="landscape">
+<!-- x5-orientation不再强制landscape：微信不支持横屏，改为auto让JS处理竖屏旋转 -->
+<meta name="x5-orientation" content="auto">
 <meta name="x5-fullscreen" content="true">
 <meta name="browsermode" content="application">
 <meta name="full-screen" content="yes">
@@ -891,20 +896,10 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
 /* ===== 移动端适配（强制横屏） ===== */
 
 /* 竖屏时全屏遮罩提示旋转 */
-.rotate-hint{
-  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#0a0812;z-index:99999;flex-direction:column;align-items:center;justify-content:center;
-  color:#f0b232;font-family:sans-serif;text-align:center;padding:40px;box-sizing:border-box
-}
-.rotate-hint .rh-phone{font-size:60px;animation:rh-rotate 2s ease-in-out infinite;margin-bottom:24px}
-.rotate-hint .rh-title{font-size:24px;font-weight:bold;margin-bottom:12px}
-.rotate-hint .rh-desc{font-size:14px;color:#8a8098;line-height:1.6}
-@keyframes rh-rotate{0%,100%{transform:rotate(0deg)}25%{transform:rotate(90deg)}75%{transform:rotate(90deg)}}
+/* rotate-hint相关样式已移除：不再需要横屏提示遮罩 */
 
 /* 竖屏移动端：由JS adaptMobile()处理旋转+缩放 */
 @media(orientation:portrait) and (max-width:1024px){
-  /* 遮罩始终隐藏——竖屏时我们旋转游戏内容而非显示遮罩 */
-  .rotate-hint{display:none!important}
   .fullscreen-btn{display:block!important;bottom:auto;top:8px;}
 }
 
@@ -937,9 +932,6 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
 }
 @media(max-width:1024px){
   .fullscreen-btn{display:block}
-}
-@media(orientation:portrait) and (max-width:768px){
-  .fullscreen-btn{display:none}
 }
 </style>
 </head>
@@ -2999,9 +2991,6 @@ function adaptMobile(){
     gs.style.cssText=gsDisplay?'display:'+gsDisplay:'';
     if(ss)ss.style.cssText=ssDisplay?'display:'+ssDisplay:'';
     if(ms)ms.style.cssText=msDisplay?'display:'+msDisplay:'';
-    // 确保遮罩隐藏
-    const rh=document.querySelector('.rotate-hint');
-    if(rh)rh.style.display='none';
     return;
   }
 
@@ -3079,10 +3068,6 @@ function adaptMobile(){
     if(ss&&ssDisplay)ss.style.display=ssDisplay;
     if(ms&&msDisplay)ms.style.display=msDisplay;
 
-    // 隐藏rotate-hint遮罩（JS控制，不依赖CSS media query）
-    const rh=document.querySelector('.rotate-hint');
-    if(rh)rh.style.display='none';
-
     console.log('[adaptMobile-竖屏] portW='+portW+' portH='+portH+' navBar='+effectiveNavBarH+' effW='+effW+' effH='+effH+' scale='+scale.toFixed(3)+' tx='+tx+' ty='+ty);
 
     showMobileDebug(effectiveNavBarH, effW, effH, scale, probeTop, navBarH, vv?(vv.offsetTop||0):0, '竖屏旋转');
@@ -3119,10 +3104,6 @@ function adaptMobile(){
   if(ss&&ssDisplay)ss.style.display=ssDisplay;
   if(ms&&msDisplay)ms.style.display=msDisplay;
 
-  // 横屏模式确保遮罩隐藏
-  const rh=document.querySelector('.rotate-hint');
-  if(rh)rh.style.display='none';
-
   console.log('[adaptMobile-横屏] 导航栏高度='+effectiveNavBarH+'px, 可用区域='+availW+'x'+availH+', scale='+scale.toFixed(3)+', offset='+offsetX+','+offsetY);
   
   showMobileDebug(effectiveNavBarH, availW, availH, scale, probeTop, navBarH, vv?(vv.offsetTop||0):0, '横屏');
@@ -3157,6 +3138,23 @@ setTimeout(adaptMobile, 100);
 setTimeout(adaptMobile, 500);
 setTimeout(adaptMobile, 1500);
 
+// ====== 立即诊断标签：页面加载后0.5秒显示，帮助排查竖屏旋转问题 ======
+(function(){
+  setTimeout(function(){
+    var d=document.createElement('div');
+    d.id='boot-diag';
+    var isP=window.innerHeight>=window.innerWidth;
+    var w=window.innerWidth, h=window.innerHeight;
+    var sw=screen.width, sh=screen.height;
+    var ua=navigator.userAgent.substring(0,60);
+    d.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999999;background:rgba(255,0,0,0.9);color:#fff;font-size:13px;padding:8px 12px;font-family:monospace;pointer-events:none;line-height:1.6;text-align:center;';
+    d.innerHTML='[诊断] innerW:'+w+' innerH:'+h+' | screen:'+sw+'x'+sh+' | isPortrait:'+isP+' | UA:'+ua;
+    document.body.appendChild(d);
+    // 15秒后自动隐藏
+    setTimeout(function(){d.style.display='none';},15000);
+  },500);
+})();
+
 // 防止iOS/企业微信弹性滚动导致页面偏移（竖屏旋转模式下）
 // 注意：不能阻止游戏元素内的touchmove（出牌拖拽需要）
 document.addEventListener('touchmove', function(e){
@@ -3170,10 +3168,6 @@ document.addEventListener('touchmove', function(e){
 </script>
 <!-- 全屏按钮：移动端点击可隐藏导航栏 -->
 <button class="fullscreen-btn" id="fullscreen-btn" onclick="tryGoFullscreen()">⛶ 全屏</button>
-<div class="rotate-hint">
-  <div class="rh-phone">📱</div>
-  <div class="rh-title">请横屏游玩</div>
-  <div class="rh-desc">虫蛀黄狼皮需要横屏模式<br>请将手机旋转至横屏 🔄</div>
-</div>
+<!-- rotate-hint遮罩已移除：竖屏时通过JS旋转游戏内容实现伪横屏，不再需要提示 -->
 </body>
 </html>
