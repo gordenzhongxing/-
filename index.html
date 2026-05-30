@@ -2928,30 +2928,47 @@ function adaptMobile(){
   }
 
   // ========== 横屏移动模式 ==========
-  // 渐进式设计尺寸匹配不同屏幕
-  let designW, designH;
-  const screenW=window.innerWidth, screenH=window.innerHeight;
-
-  if(screenH <= 360){
-    // 小手机（如SE）：紧凑
-    designW=1280; designH=650;
-  } else if(screenH <= 450){
-    // 标准手机
-    designW=1280; designH=720;
-  } else {
-    // 大手机/小平板
-    designW=1400; designH=800;
+  // 检测浏览器/App 导航栏占用的顶部空间（企业微信/微信内置浏览器）
+  let topOffset=0;
+  // 方法1: visualViewport API（最准确）
+  if(window.visualViewport){
+    topOffset=window.visualViewport.offsetTop||0;
+  }
+  // 方法2: 如果visualViewport没返回值，用screen和innerHeight差估算
+  if(topOffset===0 && window.outerHeight && window.innerHeight<window.outerHeight-40){
+    topOffset=Math.max(0, (window.outerHeight-window.innerHeight)/3);
+  }
+  // 兜底：移动端横屏通常有44-80px的导航栏
+  if(topOffset===0 && isMobileLandscape){
+    topOffset=50; // 安全估算值
   }
 
-  // 计算缩放比例（留2px边距避免贴边）
-  const pad=2;
-  const scaleX=(screenW-pad*2)/designW;
-  const scaleY=(screenH-pad*2)/designH;
+  const screenW=window.innerWidth;
+  // 实际可用高度 = 屏幕高度 - 顶部导航栏 - 底部工具栏(如有)
+  // 底部也留一些空间给浏览器底部栏
+  const bottomOffset=isMobileLandscape?8:0;
+  const availH=window.innerHeight-topOffset-bottomOffset;
+  const availW=screenW;
+
+  // 渐进式设计尺寸匹配不同屏幕
+  let designW, designH;
+  if(availH <= 300){
+    designW=1280; designH=600;
+  } else if(availH <= 380){
+    designW=1280; designH=680;
+  } else {
+    designW=1400; designH=760;
+  }
+
+  // 计算缩放比例（留边距避免贴边）
+  const pad=4;
+  const scaleX=(availW-pad*2)/designW;
+  const scaleY=(availH-pad*2)/designH;
   const scale=Math.min(scaleX, scaleY);
 
-  // 居中定位
-  const finalLeft=(screenW - designW*scale)/2;
-  const finalTop=(screenH - designH*scale)/2;
+  // 居中定位（考虑topOffset偏移）
+  const finalLeft=(availW - designW*scale)/2;
+  const finalTop=topOffset+(availH - designH*scale)/2;
 
   // 应用到游戏区
   gs.style.transform=`scale(${scale})`;
@@ -2974,8 +2991,14 @@ function adaptMobile(){
   }
 }
 window.addEventListener('resize', adaptMobile);
-// 首次加载时适配
+// visualViewport变化：浏览器地址栏/导航栏显隐时触发
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', adaptMobile);
+}
+// 首次加载时适配（多次延迟，确保DOM和visualViewport都就绪）
 setTimeout(adaptMobile, 100);
+setTimeout(adaptMobile, 500);
+setTimeout(adaptMobile, 1500);
 
 </script>
 <div class="rotate-hint">
