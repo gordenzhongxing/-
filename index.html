@@ -40,7 +40,8 @@
   --tft-cost-4:var(--rank-lao);  /* 橙/金 - 4费 */
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:var(--text-primary);overflow:hidden;height:100vh;user-select:none}
+html,body{overflow:hidden;width:100vw;height:100vh;position:relative}
+body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:var(--text-primary);user-select:none;-webkit-overflow-scrolling:touch}
 
 /* ===== 开始界面 ===== */
 #start-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:radial-gradient(ellipse at 50% 40%,#1c1830 0%,#0a0812 70%);position:relative;overflow:hidden}
@@ -900,9 +901,10 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
 .rotate-hint .rh-desc{font-size:14px;color:#8a8098;line-height:1.6}
 @keyframes rh-rotate{0%,100%{transform:rotate(0deg)}25%{transform:rotate(90deg)}75%{transform:rotate(90deg)}}
 
+/* 竖屏移动端：由JS adaptMobile()处理旋转+缩放，不再用CSS !important覆盖 */
 @media(orientation:portrait) and (max-width:768px){
-  .rotate-hint{display:flex!important}
-  #start-screen,#game-screen,#match-screen{display:none!important}
+  .rotate-hint{display:none!important}
+  .fullscreen-btn{display:block!important;bottom:auto;top:8px;}
 }
 
 /* 横屏移动端 - 只做整体缩放，不改单个元素尺寸 */
@@ -2974,110 +2976,131 @@ function showRules(){document.getElementById('rules-modal').style.display='flex'
 function adaptMobile(){
   const gs=document.getElementById('game-screen');
   const ss=document.getElementById('start-screen');
+  const ms=document.getElementById('match-screen');
   if(!gs)return;
 
-  const isMobileLandscape=window.innerWidth<=1024 && window.innerWidth>window.innerHeight;
-  const isMobilePortrait=window.innerWidth<=768 && window.innerHeight>=window.innerWidth;
+  const isMobile=window.innerWidth<=1024;
+  const isPortrait=window.innerHeight>=window.innerWidth;
 
-  // 竖屏移动：不缩放，由CSS rotate-hint遮罩处理
-  if(isMobilePortrait){
+  // 全局标记：当前是否竖屏旋转模式
+  window._isPortraitRotated=isMobile && isPortrait;
+
+  // 桌面/大屏：清除所有缩放
+  if(!isMobile){
     gs.style.cssText='';
     if(ss)ss.style.cssText='';
+    if(ms)ms.style.cssText='';
     return;
-  }
-
-  // 桌面/平板非移动：清除所有缩放
-  if(!isMobileLandscape){
-    gs.style.transform='';gs.style.transformOrigin='';
-    gs.style.width='';gs.style.height='';
-    gs.style.position='';gs.style.top='';gs.style.left='';
-    gs.style.overflow='';
-    if(ss){ss.style.transform='';ss.style.transformOrigin='';ss.style.width='';ss.style.height='';ss.style.position='';ss.style.top='';ss.style.left='';ss.style.overflow='';}
-    return;
-  }
-
-  // ========== 横屏移动模式 ==========
-  // 核心思路：保持game-screen为PC版大尺寸(1920x1080)，用scale整体缩小
-  // 这样内部所有固定尺寸元素(580px圆桌、80px出牌框等)保持原始比例
-  
-  // ===== 精确测量导航栏遮挡区域 =====
-  // 方法1：visualViewport API
-  const vv=window.visualViewport;
-  let navBarH=0; // 导航栏高度
-  let availW=window.innerWidth;
-  let availH=window.innerHeight;
-  
-  if(vv){
-    // visualViewport.height 是去掉导航栏后的可视高度
-    // window.innerHeight 是包含导航栏的窗口高度
-    // 差值就是导航栏高度
-    navBarH=window.innerHeight - vv.height;
-    if(navBarH<0) navBarH=0;
-    availW=vv.width;
-    availH=vv.height;
-  }
-  
-  // 方法2：用DOM元素精确测量（更可靠）
-  // 创建一个100vh的探测元素，看它的getBoundingClientRect是否被导航栏挤压
-  const probe=document.createElement('div');
-  probe.style.cssText='position:fixed;top:0;left:0;width:1px;height:100vh;pointer-events:none;visibility:hidden;z-index:-1';
-  document.body.appendChild(probe);
-  const probeRect=probe.getBoundingClientRect();
-  const probeTop=probeRect.top; // 如果有导航栏遮挡，这个值会>0
-  document.body.removeChild(probe);
-  
-  // 取两种方法中较大的偏移值（更安全）
-  const effectiveNavBarH=Math.max(navBarH, probeTop, vv?(vv.offsetTop||0):0);
-  
-  if(effectiveNavBarH>5){
-    // 有导航栏遮挡，重新计算可用区域
-    availH=window.innerHeight - effectiveNavBarH;
-    availW=window.innerWidth;
   }
 
   // PC版设计基准尺寸
   const designW=1920, designH=1080;
 
+  // ===== 检测导航栏遮挡 =====
+  const vv=window.visualViewport;
+  let navBarH=0;
+  let availW=window.innerWidth;
+  let availH=window.innerHeight;
+
+  if(vv){
+    navBarH=window.innerHeight - vv.height;
+    if(navBarH<0) navBarH=0;
+    availW=vv.width;
+    availH=vv.height;
+  }
+
+  // DOM探测法：更可靠的导航栏测量
+  const probe=document.createElement('div');
+  probe.style.cssText='position:fixed;top:0;left:0;width:1px;height:100vh;pointer-events:none;visibility:hidden;z-index:-1';
+  document.body.appendChild(probe);
+  const probeRect=probe.getBoundingClientRect();
+  const probeTop=probeRect.top;
+  document.body.removeChild(probe);
+
+  const effectiveNavBarH=Math.max(navBarH, probeTop, vv?(vv.offsetTop||0):0);
+
+  if(effectiveNavBarH>5){
+    availH=window.innerHeight - effectiveNavBarH;
+    availW=window.innerWidth;
+  }
+
+  // ========== 竖屏移动模式：旋转90度显示"伪横屏" ==========
+  if(isPortrait){
+    // 竖屏时，屏幕物理尺寸是 portW x portH (宽<高)
+    // 旋转后，有效可视区域变成 portH x portW
+    const portW=availW;
+    const portH=availH;
+
+    // 旋转后的有效可用区域：宽=portH-导航栏偏移，高=portW
+    const effW=portH - effectiveNavBarH;
+    const effH=portW;
+
+    // 缩放比例：把 1920x1080 的设计塞进 effW x effH
+    const scaleX=effW/designW;
+    const scaleY=effH/designH;
+    const scale=Math.min(scaleX, scaleY);
+
+    // 缩放后的实际尺寸
+    const scaledW=designW*scale;
+    const scaledH=designH*scale;
+
+    // 竖屏旋转定位：
+    // transform-origin: center center，旋转中心在元素中心
+    // 旋转前：元素宽=scaledW, 高=scaledH
+    // 旋转后：元素占位宽=scaledH, 高=scaledW (宽高互换)
+    // 用 left/top + margin-left/margin-top 精确定位
+
+    // 旋转后元素在屏幕上占据 scaledH × scaledW 的区域
+    // 水平居中在 portW 中：left=50%, margin-left=-scaledH/2
+    // 垂直从导航栏下方居中：top=navBarH + (portH-navBarH)/2, margin-top=-scaledW/2
+    const centerX=portW/2;
+    const centerY=effectiveNavBarH+(portH-effectiveNavBarH)/2;
+
+    const transform=`rotate(90deg) scale(${scale})`;
+    // left/top定位元素左上角，margin偏移让元素中心对准(centerX, centerY)
+    // margin基于未缩放尺寸(width=1920, height=1080)
+    const style=`width:${designW}px;height:${designH}px;position:absolute;overflow:hidden;transform:${transform};transform-origin:center center;left:${centerX}px;top:${centerY}px;margin-left:${-designW/2}px;margin-top:${-designH/2}px;`;
+
+    gs.style.cssText=style;
+    if(ss)ss.style.cssText=style;
+    if(ms)ms.style.cssText=style;
+
+    console.log('[adaptMobile-竖屏] 导航栏='+effectiveNavBarH+'px, 可用='+portW+'x'+portH+', 有效='+effW+'x'+effH+', scale='+scale.toFixed(3)+', center=('+centerX+','+centerY+')');
+
+    showMobileDebug(effectiveNavBarH, effW, effH, scale, probeTop, navBarH, vv?(vv.offsetTop||0):0, '竖屏旋转');
+    return;
+  }
+
+  // ========== 横屏移动模式 ==========
+
   // 缩放比例：把1920x1080缩进availW×availH
-  const scaleX=availW/designW;
-  const scaleY=availH/designH;
-  const scale=Math.min(scaleX, scaleY);
+  const scX=availW/designW;
+  const scY=availH/designH;
+  const scale=Math.min(scX, scY);
 
   // 缩放后的实际尺寸
   const scaledW=designW*scale;
   const scaledH=designH*scale;
 
-  // 居中偏移：水平居中，垂直方向从导航栏下方开始居中
+  // 居中偏移
   const offsetX=(availW-scaledW)/2;
   const offsetY=effectiveNavBarH+(availH-scaledH)/2;
 
-  // 应用到游戏区
-  gs.style.width=designW+'px';
-  gs.style.height=designH+'px';
-  gs.style.position='absolute';
-  gs.style.overflow='hidden';
-  gs.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
-  gs.style.transformOrigin='top left';
+  const transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
+  const style=`width:${designW}px;height:${designH}px;position:absolute;overflow:hidden;transform:${transform};transform-origin:top left;`;
 
-  // 开始界面也同步
-  if(ss){
-    ss.style.width=designW+'px';
-    ss.style.height=designH+'px';
-    ss.style.position='absolute';
-    ss.style.overflow='hidden';
-    ss.style.transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
-    ss.style.transformOrigin='top left';
-  }
+  gs.style.cssText=style;
+  if(ss)ss.style.cssText=style;
+  if(ms)ms.style.cssText=style;
+
+  console.log('[adaptMobile-横屏] 导航栏高度='+effectiveNavBarH+'px, 可用区域='+availW+'x'+availH+', scale='+scale.toFixed(3)+', offset='+offsetX+','+offsetY);
   
-  console.log('[adaptMobile] 导航栏高度='+effectiveNavBarH+'px, 可用区域='+availW+'x'+availH+', scale='+scale.toFixed(3)+', offset='+offsetX+','+offsetY);
-  
-  // 调试信息浮层：移动端可见，帮助排查导航栏问题
-  showMobileDebug(effectiveNavBarH, availW, availH, scale, probeTop, navBarH, vv?(vv.offsetTop||0):0);
+  showMobileDebug(effectiveNavBarH, availW, availH, scale, probeTop, navBarH, vv?(vv.offsetTop||0):0, '横屏');
 }
 
 // 调试信息浮层
 let mobileDebugEl=null;
-function showMobileDebug(navH, aw, ah, sc, pt, vvH, vvTop){
+function showMobileDebug(navH, aw, ah, sc, pt, vvH, vvTop, mode){
   if(window.innerWidth>1024) return; // PC端不显示
   if(!mobileDebugEl){
     mobileDebugEl=document.createElement('div');
@@ -3085,7 +3108,7 @@ function showMobileDebug(navH, aw, ah, sc, pt, vvH, vvTop){
     mobileDebugEl.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;background:rgba(0,0,0,.85);color:#0f0;font-size:11px;padding:4px 8px;font-family:monospace;pointer-events:none;line-height:1.5;';
     document.body.appendChild(mobileDebugEl);
   }
-  mobileDebugEl.innerHTML=`导航栏:${navH}px | 可用:${aw}×${ah} | scale:${sc.toFixed(3)} | probe:${pt} | vvH差:${vvH} | vvTop:${vvTop} | winH:${window.innerHeight}`;
+  mobileDebugEl.innerHTML=`[${mode||'?'}] 导航栏:${navH}px | 可用:${aw}×${ah} | scale:${sc.toFixed(3)} | probe:${pt} | vvH差:${vvH} | vvTop:${vvTop} | winH:${window.innerHeight}`;
   // 8秒后自动隐藏
   clearTimeout(mobileDebugEl._hideTimer);
   mobileDebugEl.style.display='block';
@@ -3100,6 +3123,16 @@ if(window.visualViewport){
 setTimeout(adaptMobile, 100);
 setTimeout(adaptMobile, 500);
 setTimeout(adaptMobile, 1500);
+
+// 防止iOS/企业微信弹性滚动导致页面偏移（竖屏旋转模式下）
+// 注意：不能阻止游戏元素内的touchmove（出牌拖拽需要）
+document.addEventListener('touchmove', function(e){
+  if(!window._isPortraitRotated) return;
+  // 如果touchmove的target在game-screen或start-screen内，不阻止（允许出牌交互）
+  const t=e.target;
+  if(t.closest('#game-screen') || t.closest('#start-screen') || t.closest('#match-screen')) return;
+  e.preventDefault();
+}, {passive:false});
 
 </script>
 <!-- 全屏按钮：移动端点击可隐藏导航栏 -->
