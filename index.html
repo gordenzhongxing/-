@@ -901,8 +901,9 @@ body{font-family:'Microsoft YaHei',sans-serif;background:var(--bg-dark);color:va
 .rotate-hint .rh-desc{font-size:14px;color:#8a8098;line-height:1.6}
 @keyframes rh-rotate{0%,100%{transform:rotate(0deg)}25%{transform:rotate(90deg)}75%{transform:rotate(90deg)}}
 
-/* 竖屏移动端：由JS adaptMobile()处理旋转+缩放，不再用CSS !important覆盖 */
-@media(orientation:portrait) and (max-width:768px){
+/* 竖屏移动端：由JS adaptMobile()处理旋转+缩放 */
+@media(orientation:portrait) and (max-width:1024px){
+  /* 遮罩始终隐藏——竖屏时我们旋转游戏内容而非显示遮罩 */
   .rotate-hint{display:none!important}
   .fullscreen-btn{display:block!important;bottom:auto;top:8px;}
 }
@@ -2980,16 +2981,27 @@ function adaptMobile(){
   if(!gs)return;
 
   const isMobile=window.innerWidth<=1024;
-  const isPortrait=window.innerHeight>=window.innerWidth;
+  // 竖屏判断：多种方式综合判断
+  const isPortrait=window.innerHeight>=window.innerWidth ||
+    (screen.orientation && screen.orientation.type && screen.orientation.type.includes('portrait'));
+
+  // 关键诊断：打印屏幕方向判断
+  console.log('[adaptMobile] innerW='+window.innerWidth+' innerH='+window.innerHeight+' isMobile='+isMobile+' isPortrait='+isPortrait+' screen='+screen.width+'x'+screen.height);
 
   // 全局标记：当前是否竖屏旋转模式
   window._isPortraitRotated=isMobile && isPortrait;
 
-  // 桌面/大屏：清除所有缩放
+  // 桌面/大屏：清除所有缩放，但保留display状态
   if(!isMobile){
-    gs.style.cssText='';
-    if(ss)ss.style.cssText='';
-    if(ms)ms.style.cssText='';
+    const gsDisplay=gs.style.display||'';
+    const ssDisplay=ss?ss.style.display:'';
+    const msDisplay=ms?ms.style.display:'';
+    gs.style.cssText=gsDisplay?'display:'+gsDisplay:'';
+    if(ss)ss.style.cssText=ssDisplay?'display:'+ssDisplay:'';
+    if(ms)ms.style.cssText=msDisplay?'display:'+msDisplay:'';
+    // 确保遮罩隐藏
+    const rh=document.querySelector('.rotate-hint');
+    if(rh)rh.style.display='none';
     return;
   }
 
@@ -3027,45 +3039,51 @@ function adaptMobile(){
   // ========== 竖屏移动模式：旋转90度显示"伪横屏" ==========
   if(isPortrait){
     // 竖屏时，屏幕物理尺寸是 portW x portH (宽<高)
-    // 旋转后，有效可视区域变成 portH x portW
-    const portW=availW;
-    const portH=availH;
+    const portW=window.innerWidth;
+    const portH=window.innerHeight;
 
-    // 旋转后的有效可用区域：宽=portH-导航栏偏移，高=portW
-    const effW=portH - effectiveNavBarH;
-    const effH=portW;
+    // 旋转后，有效可视区域等效为 portH x portW
+    // 但要减去导航栏高度
+    const effW=portH - effectiveNavBarH;  // 旋转后的等效宽度
+    const effH=portW;                      // 旋转后的等效高度
 
-    // 缩放比例：把 1920x1080 的设计塞进 effW x effH
-    const scaleX=effW/designW;
-    const scaleY=effH/designH;
-    const scale=Math.min(scaleX, scaleY);
+    // 缩放比例：把 1920x1080 塞进 effW x effH
+    const scale=Math.min(effW/designW, effH/designH);
 
-    // 缩放后的实际尺寸
-    const scaledW=designW*scale;
-    const scaledH=designH*scale;
+    // 缩放后尺寸
+    const sw=designW*scale; // 1920*s
+    const sh=designH*scale; // 1080*s
 
-    // 竖屏旋转定位：
-    // transform-origin: center center，旋转中心在元素中心
-    // 旋转前：元素宽=scaledW, 高=scaledH
-    // 旋转后：元素占位宽=scaledH, 高=scaledW (宽高互换)
-    // 用 left/top + margin-left/margin-top 精确定位
+    // 定位计算（transform-origin: 0 0）：
+    // CSS执行顺序（右→左）：scale(s) → rotate(90deg) → translate(tx,ty)
+    // rotate(90deg)绕原点后，元素占据 x:[0, sh], y:[-sw, 0]
+    // 需要translate让元素居中在屏幕中
+    const tx=(portW - sh)/2;
+    const ty=effectiveNavBarH + (portH - effectiveNavBarH - sw)/2 + sw;
+    // ty解释：旋转后元素顶边在y=-sw，需要平移到navBarH+(剩余空间-sw)/2
+    // 即 ty = sw + navBarH + (portH-navBarH-sw)/2
 
-    // 旋转后元素在屏幕上占据 scaledH × scaledW 的区域
-    // 水平居中在 portW 中：left=50%, margin-left=-scaledH/2
-    // 垂直从导航栏下方居中：top=navBarH + (portH-navBarH)/2, margin-top=-scaledW/2
-    const centerX=portW/2;
-    const centerY=effectiveNavBarH+(portH-effectiveNavBarH)/2;
+    const transform=`translate(${tx}px,${ty}px) rotate(90deg) scale(${scale})`;
+    // 注意：不覆盖display属性，保留当前显示/隐藏状态
+    const baseStyle=`width:${designW}px;height:${designH}px;position:absolute;overflow:hidden;transform:${transform};transform-origin:0 0;`;
+    const gsDisplay=gs.style.display||'';
+    const ssDisplay=ss?ss.style.display:'';
+    const msDisplay=ms?ms.style.display:'';
 
-    const transform=`rotate(90deg) scale(${scale})`;
-    // left/top定位元素左上角，margin偏移让元素中心对准(centerX, centerY)
-    // margin基于未缩放尺寸(width=1920, height=1080)
-    const style=`width:${designW}px;height:${designH}px;position:absolute;overflow:hidden;transform:${transform};transform-origin:center center;left:${centerX}px;top:${centerY}px;margin-left:${-designW/2}px;margin-top:${-designH/2}px;`;
+    gs.style.cssText=baseStyle;
+    if(ss)ss.style.cssText=baseStyle;
+    if(ms)ms.style.cssText=baseStyle;
 
-    gs.style.cssText=style;
-    if(ss)ss.style.cssText=style;
-    if(ms)ms.style.cssText=style;
+    // 恢复display状态（cssText会清空display）
+    if(gsDisplay)gs.style.display=gsDisplay;
+    if(ss&&ssDisplay)ss.style.display=ssDisplay;
+    if(ms&&msDisplay)ms.style.display=msDisplay;
 
-    console.log('[adaptMobile-竖屏] 导航栏='+effectiveNavBarH+'px, 可用='+portW+'x'+portH+', 有效='+effW+'x'+effH+', scale='+scale.toFixed(3)+', center=('+centerX+','+centerY+')');
+    // 隐藏rotate-hint遮罩（JS控制，不依赖CSS media query）
+    const rh=document.querySelector('.rotate-hint');
+    if(rh)rh.style.display='none';
+
+    console.log('[adaptMobile-竖屏] portW='+portW+' portH='+portH+' navBar='+effectiveNavBarH+' effW='+effW+' effH='+effH+' scale='+scale.toFixed(3)+' tx='+tx+' ty='+ty);
 
     showMobileDebug(effectiveNavBarH, effW, effH, scale, probeTop, navBarH, vv?(vv.offsetTop||0):0, '竖屏旋转');
     return;
@@ -3087,11 +3105,23 @@ function adaptMobile(){
   const offsetY=effectiveNavBarH+(availH-scaledH)/2;
 
   const transform=`translate(${offsetX}px,${offsetY}px) scale(${scale})`;
-  const style=`width:${designW}px;height:${designH}px;position:absolute;overflow:hidden;transform:${transform};transform-origin:top left;`;
+  const baseStyle=`width:${designW}px;height:${designH}px;position:absolute;overflow:hidden;transform:${transform};transform-origin:top left;`;
+  const gsDisplay=gs.style.display||'';
+  const ssDisplay=ss?ss.style.display:'';
+  const msDisplay=ms?ms.style.display:'';
 
-  gs.style.cssText=style;
-  if(ss)ss.style.cssText=style;
-  if(ms)ms.style.cssText=style;
+  gs.style.cssText=baseStyle;
+  if(ss)ss.style.cssText=baseStyle;
+  if(ms)ms.style.cssText=baseStyle;
+
+  // 恢复display状态
+  if(gsDisplay)gs.style.display=gsDisplay;
+  if(ss&&ssDisplay)ss.style.display=ssDisplay;
+  if(ms&&msDisplay)ms.style.display=msDisplay;
+
+  // 横屏模式确保遮罩隐藏
+  const rh=document.querySelector('.rotate-hint');
+  if(rh)rh.style.display='none';
 
   console.log('[adaptMobile-横屏] 导航栏高度='+effectiveNavBarH+'px, 可用区域='+availW+'x'+availH+', scale='+scale.toFixed(3)+', offset='+offsetX+','+offsetY);
   
@@ -3101,18 +3131,21 @@ function adaptMobile(){
 // 调试信息浮层
 let mobileDebugEl=null;
 function showMobileDebug(navH, aw, ah, sc, pt, vvH, vvTop, mode){
-  if(window.innerWidth>1024) return; // PC端不显示
+  if(window.innerWidth>1024) return;
   if(!mobileDebugEl){
     mobileDebugEl=document.createElement('div');
     mobileDebugEl.id='mobile-debug';
-    mobileDebugEl.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;background:rgba(0,0,0,.85);color:#0f0;font-size:11px;padding:4px 8px;font-family:monospace;pointer-events:none;line-height:1.5;';
+    mobileDebugEl.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;background:rgba(0,0,0,.9);color:#0f0;font-size:12px;padding:6px 10px;font-family:monospace;pointer-events:none;line-height:1.6;';
     document.body.appendChild(mobileDebugEl);
   }
-  mobileDebugEl.innerHTML=`[${mode||'?'}] 导航栏:${navH}px | 可用:${aw}×${ah} | scale:${sc.toFixed(3)} | probe:${pt} | vvH差:${vvH} | vvTop:${vvTop} | winH:${window.innerHeight}`;
-  // 8秒后自动隐藏
+  const isPort=window.innerHeight>=window.innerWidth;
+  const extra=isPort?` | innerW:${window.innerWidth} innerH:${window.innerHeight} | 旋转模式:ON`:'';
+  mobileDebugEl.innerHTML=`[${mode||'?'}] 导航栏:${navH}px | 可用:${aw}×${ah} | scale:${sc.toFixed(3)} | probe:${pt} | vvH差:${vvH} | vvTop:${vvTop} | win:${window.innerWidth}×${window.innerHeight}${extra}`;
+  // 竖屏模式下延长显示时间到30秒（方便用户反馈数据）
+  const dur=isPort?30000:8000;
   clearTimeout(mobileDebugEl._hideTimer);
   mobileDebugEl.style.display='block';
-  mobileDebugEl._hideTimer=setTimeout(()=>{mobileDebugEl.style.display='none';},8000);
+  mobileDebugEl._hideTimer=setTimeout(()=>{mobileDebugEl.style.display='none';},dur);
 }
 window.addEventListener('resize', adaptMobile);
 // visualViewport变化：浏览器地址栏/导航栏显隐时触发
